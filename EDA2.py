@@ -6,7 +6,7 @@ import pylab
 import statsmodels.api as sm
 from scipy.stats import kstest, norm
 from scipy import stats
-
+import numpy as np
 # Description
 # Analysis for Group in the 20 year cathegory
 # Treatmet (D): Treatement Description (0 ST, 1 LT)
@@ -26,153 +26,80 @@ def calc_sum_stats(boot_df):
     sum_stats['IQR'] = boot_df.quantile(0.75) - boot_df.quantile(0.25)
     return sum_stats.T
 
-# Split Data Frame
 
+def facetgrid_two_axes(*args, **kwargs):
+    data = kwargs.pop('data')
+    dual_axis = kwargs.pop('dual_axis')
+    kwargs.pop('color')
+    ax = plt.gca()
+    if dual_axis:
+        ax2 = ax.twinx()
+        ax2.set_ylabel('(%) Stock Allocation')
 
-def split(fname, col, tname, CG, TG):
-    # Get Data Frame
-    dtf = pd.read_csv(fname, header=0)
-    st = calc_sum_stats(dtf[col])
-
-    # Get Control and Treatmet Groups
-    dtfCG = dtf[dtf[tname] == CG]
-    stCG = calc_sum_stats(dtfCG[col])
-
-    dtfTG = dtf[dtf[tname] == TG]
-    stTG = calc_sum_stats(dtfTG[col])
-
-    # Concat Stats
-    stats = pd.concat([st, stCG, stTG], axis=1,
-                      keys=['Overall', 'Control', 'Treatment'])
-    return dtf, dtfCG, dtfTG, stats
-
-# Create KernelDensity Figures
-
-
-def kdefig(figu, dtf, x, bw):
-    # Top of Figure
-    Sp = [0.2, 0.3, 0.4, 0.5]  # Smoothing Parameter
-    for s in Sp:
-        sns.kdeplot(data=dtf, x=x, bw_adjust=s,
-                    ax=figu.axes[0]).legend(labels=Sp)
-
-    figu.axes[0].set_title('Smoothing Parameters')
-    # Bottom Part of Figure
-    sns.kdeplot(data=dtf, x=x, bw_adjust=bw, ax=figu.axes[1])
-    figu.axes[1].set_title(str(bw)+' Smoothing')
-
-# Obtain the KernelDensity for each Treatmet
-
-
-def kdefigCT(figu, dtf, dtfCG, dtfTG, x, bw, tname):
-    sns.kdeplot(data=dtfCG, x=x, bw_adjust=bw,
-                ax=figu.axes[0], fill=True).set(xlabel=None)
-    sns.kdeplot(data=dtfTG, x=x, bw_adjust=bw,
-                ax=figu.axes[2], color='darkorange', fill=True)
-    figu.axes[0].set_title('KDE Control vs Treatmet')
-
-    sns.histplot(data=dtf, x=x, hue=tname, ax=figu.axes[1]).set(xlabel=None)
-    sns.kdeplot(data=dtf, x=x, bw_adjust=bw,
-                hue=tname, cumulative=True, common_norm=False,
-                common_grid=True, ax=figu.axes[3]).set(ylabel=None)
-    figu.axes[1].set_title('Histograms & CDFs')
-
-# Obtain Violin and Boxplots
-
-
-def vioandbox(figu, dtf, tname, y, bw):
-    sns.violinplot(data=dtf, x=tname, y=y, ax=figu.axes[0], bw=bw)
-    figu.axes[0].set_title('Violin Plot')
-
-    sns.boxplot(data=dtf, x=tname, y=y, ax=figu.axes[1]).set(ylabel=None)
-    figu.axes[1].set_title('Box Plot')
-
-# Joint Plot AveExp with Ave Stock Allocation
-
-
-def contrast(dtf, dtfCG, dtfTG, dtOB, x, y, ob, tname, levels):
-    g = sns.jointplot(data=dtf, x=x, y=y,
-                      hue=tname)
-    g.plot_joint(sns.kdeplot, zorder=0, levels=levels)
-    g.refline(x=dtfTG[x].mean(), y=dtfTG[y].mean(), color='orange')
-    g.refline(x=dtfCG[x].mean(), y=dtfCG[y].mean(), color='blue')
-    g.refline(x=dtOB[ob].mean(), color='r')
-    g.set_axis_labels('Average Expectation', '(%) Stock Allocation')
-
-
+    ax.plot(data['Year'], data['Belief'], 'o-')
+    if dual_axis:
+        ax2.plot(data['Year'], data['PerAllo'], 'x--', color='green', mec='black')
 #######################################################################
 # # Exploratory Data Analysis
 
-#  ################ $$ Objective Return Distribution $$ ####################
+
+#  ########### $$ Objective Return Distribution 20 Cochort$$ ################
 dfOb = pd.read_csv('ObjDistribution.csv', header=0)
 dfObNC = dfOb[dfOb['Actual Year'] >= 1945]
-# ################# $$ 20 Cohort Visualizations $$ #########################
-dtf20, dtf20ST, dtf20LT, sts20 = split('20PeriodGroup.csv',
-                                       'AveExp',
-                                       'Treatment (D)', 0, 1)
 
-# Create First Figure KDE
-fig, axes = plt.subplots(2, sharex=True)
-fig.suptitle('20 Cohort - Kernel Density Estimation')
-kdefig(fig, dtf20, 'AveExp', 0.2)
+print(dfObNC['Return'].mean())
 
-# Create Second Figure Group Comparison
-fig1, ax = plt.subplots(2, 2)
-for i in range(0, 4):
-    fig1.axes[i].grid(True)
-fig1.suptitle('20 Cohort - Treatmet Comparison')
-kdefigCT(fig1, dtf20, dtf20ST, dtf20LT, 'AveExp', 0.2, 'Treatment (D)')
+plt.figure(1)
+plt.plot(dfObNC['Actual Year'], dfObNC['Return'], 'o-')
+plt.axvspan(1945, 1946, facecolor='crimson', alpha=0.5)
+plt.axvspan(1951, 1953, facecolor='silver', alpha=0.5)
+plt.axvspan(1954, 1957, facecolor='crimson', alpha=0.5)
+plt.axvspan(1958, 1960, facecolor='crimson', alpha=0.5)
+plt.axvspan(1961, 1962, facecolor='silver', alpha=0.5)
+plt.axhline(y=dfObNC['Return'].mean(), color='r', label='Average')
+plt.text(1946, dfObNC['Return'].mean()+0.01, '(Mean = 10.15%)')
+plt.xlabel('Period')
+plt.ylabel('(%) Return')
+plt.title('SP 500 Return Stream from 1945 to 1964')
+(plt.xticks(range(dfObNC['Actual Year'].min(),
+                  dfObNC['Actual Year'].max()+1, 1), rotation=45))
 
-# Create Third Visualization
-fig2, axes = plt.subplots(1, 2, sharey=True)
-fig2.suptitle('20 Cohort - Treatmet Comparison')
-vioandbox(fig2, dtf20, 'Treatment (D)', 'AveExp', 0.2)
 
-# Create Bivariate Plot
-contrast(dtf20, dtf20ST, dtf20LT, dfObNC, 'AveExp', 'AveSA', 'Objective',
-         'Treatment (D)', 7)
+#  ########### $$ Objective Return Distribution 40 Cochort$$ ################
+print(dfOb['Return'].mean())
 
-# ################# $$ 40 Cohort Visualizations $$ #########################
-dtf40, dtf40ST, dtf40LT, sts40 = split('40PeriodGroup.csv',
-                                       'AveExp',
-                                       'Treatment (D)', 0, 1)
-# Create First Figure KDE
-fig3, axes = plt.subplots(2, sharex=True)
-fig3.suptitle('40 Cohort - Kernel Density Estimation')
-kdefig(fig3, dtf40, 'AveExp', 0.2)
+plt.figure(2)
+plt.plot(dfOb['Actual Year'], dfOb['Return'], 'o-')
+plt.axvspan(1925, 1926, facecolor='silver', alpha=0.5)
+plt.axvspan(1928, 1931, facecolor='crimson', alpha=0.5)
+plt.axvspan(1933, 1934, facecolor='crimson', alpha=0.5)
+plt.axvspan(1935, 1937, facecolor='crimson', alpha=0.5)
+plt.axvspan(1938, 1941, facecolor='silver', alpha=0.5)
+plt.axvspan(1945, 1946, facecolor='crimson', alpha=0.5)
+plt.axvspan(1951, 1953, facecolor='silver', alpha=0.5)
+plt.axvspan(1954, 1957, facecolor='crimson', alpha=0.5)
+plt.axvspan(1958, 1960, facecolor='crimson', alpha=0.5)
+plt.axvspan(1961, 1962, facecolor='silver', alpha=0.5)
+plt.axhline(y=dfOb['Return'].mean(), color='r', label='Average')
+plt.text(1929, dfOb['Return'].mean()+0.01, '(Mean = 7.89%)')
+plt.xlabel('Period')
+plt.ylabel('(%) Return')
+plt.title('SP 500 Return Stream from 1925 to 1964')
+(plt.xticks(range(dfOb['Actual Year'].min(),
+                  dfOb['Actual Year'].max()+1, 1), rotation=50))
 
-# Create Second Figure Group Comparison
-fig4, ax = plt.subplots(2, 2)
-for i in range(0, 4):
-    fig1.axes[i].grid(True)
-fig4.suptitle('40 Cohort - Treatmet Comparison')
-kdefigCT(fig4, dtf40, dtf40ST, dtf40LT, 'AveExp', 0.2, 'Treatment (D)')
 
-# Create Third Visualization
-fig5, axes = plt.subplots(1, 2, sharey=True)
-fig5.suptitle('40 Cohort - Treatmet Comparison')
-vioandbox(fig5, dtf40, 'Treatment (D)', 'AveExp', 0.2)
+#  ################ $$ Per Subject 20 Cohort $$ ####################
+dtf = pd.read_csv('Test.csv', header=0)
+print(dtf.Subject.unique())
+print(dtf.columns)
 
-# Create Bivariate Plot
-contrast(dtf40, dtf40ST, dtf40LT, dfOb, 'AveExp', 'AveSA', 'Objective',
-         'Treatment (D)', 5)
-
-# #####################################################################
-# # Compare Stats with Objective Distribution
-stOb = calc_sum_stats(dfOb['Objective'])
-
-# SW_test(dfOb, 'Objective')
-stObNC = calc_sum_stats(dfObNC['Objective'])
-
-G20stats = pd.concat([sts20, stObNC], axis=1)
-G40stats = pd.concat([sts40, stOb], axis=1)
-print(G20stats)
-print(G40stats)
-
-# fig5, ax = plt.subplots(2,  sharex=True)
-# sns.kdeplot(data=dfOb, x="Rdecimal", bw_adjust=0.2, ax=fig1.axes[2],
-#             linestyle="--", color="r", legend=True)
-#
-# fig5.axes[0].set_title('Objective Kernel Distribution')
-
+z = sns.FacetGrid(dtf, col='Subject', col_wrap=3, height=4, ylim=(-0.3, 1))
+(z.map_dataframe(facetgrid_two_axes, dual_axis=True)
+    .set_axis_labels("Period", "Belief"))
+z.map(plt.fill_betweenx, y=[-1, 1], x1=1, x2=2, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=7, x2=9, alpha=0.5, color='silver')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=10, x2=13, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=14, x2=16, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=17, x2=18, alpha=0.5, color='silver')
 plt.show()
