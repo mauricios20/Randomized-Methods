@@ -171,13 +171,13 @@ dtf40, dtf40ST, dtf40LT, stats40 = split('40PerSubjectData.csv',
 print(dtf40ST.Subject.unique())
 print(dtf40LT.Subject.unique())
 
-# G40stats = pd.concat([stats40, stOb], axis=1)
-# print(G40stats.to_latex(index=True))
+G40stats = pd.concat([stats40, stOb], axis=1)
+print(G40stats.to_latex(index=True))
 
 # Create First Figure KDE
 fig, axes = plt.subplots(2, sharex=True)
 fig.suptitle('40 Cohort - Kernel Density Estimation')
-kdefig(fig, dtf40, 'Belief', 0.3, dfOb, obj=True)
+kdefig(fig, dtf40, 'Belief', 0.4, dfOb, obj=True)
 
 
 # Create Second Figure Group Comparison
@@ -208,32 +208,32 @@ z = sns.FacetGrid(dtf40ST, col='Subject', col_wrap=5,
 (z.map_dataframe(facetgrid_two_axes, dual_axis=True)
     .set_axis_labels("Period", "Belief"))
 z.map(plt.fill_betweenx, y=[-1, 1], x1=1, x2=2, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=7, x2=9, alpha=0.5, color='silver')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=10, x2=13, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=14, x2=16, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=17, x2=18, alpha=0.5, color='silver')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=22, x2=23, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=28, x2=30, alpha=0.5, color='silver')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=31, x2=34, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=35, x2=37, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=38, x2=39, alpha=0.5, color='silver')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=4, x2=7, alpha=0.5, color='red')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=9, x2=10, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=11, x2=13, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=14, x2=17, alpha=0.5, color='silver')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=21, x2=22, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=27, x2=29, alpha=0.5, color='silver')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=30, x2=33, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=34, x2=36, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=37, x2=38, alpha=0.5, color='silver')
 
 # Per Subject in Treatmet Group
 min = dtf40LT['Belief'].min()-0.1
 max = dtf40LT['Belief'].max()+0.1
 
 z = sns.FacetGrid(dtf40LT, col='Subject', col_wrap=5,
-                  height=3, ylim=(min, max), aspect=1.3)
+                  height=3, ylim=(min, max), aspect=1.4)
 (z.map_dataframe(facetgrid_two_axes, dual_axis=True)
     .set_axis_labels("Period", "Belief"))
 z.map(plt.fill_betweenx, y=[-1, 1], x1=1, x2=2, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=7, x2=9, alpha=0.5, color='silver')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=10, x2=13, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=14, x2=16, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=17, x2=18, alpha=0.5, color='silver')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=22, x2=23, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=28, x2=30, alpha=0.5, color='silver')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=31, x2=34, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=35, x2=37, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=38, x2=39, alpha=0.5, color='silver')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=4, x2=7, alpha=0.5, color='red')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=9, x2=10, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=11, x2=13, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=14, x2=17, alpha=0.5, color='silver')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=21, x2=22, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=27, x2=29, alpha=0.5, color='silver')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=30, x2=33, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=34, x2=36, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=37, x2=38, alpha=0.5, color='silver')
 plt.show()
