@@ -2,11 +2,8 @@ import os
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import pylab
-import statsmodels.api as sm
-from scipy.stats import kstest, norm
-from scipy import stats
-import numpy as np
+import statistics
+import scipy.stats as stat
 # Description
 # Analysis for Group in the 20 year cathegory
 # Treatmet (D): Treatement Description (0 ST, 1 LT)
@@ -20,6 +17,8 @@ os.chdir("C:/Users/mauri/Dropbox/Family Room/1 Hi Lo Exp Data/Randomization Meth
 
 def calc_sum_stats(boot_df):
     sum_stats = boot_df.describe().T[['count', 'mean', 'std', 'min', 'max']]
+    sum_stats['variance'] = statistics.variance(boot_df)
+    sum_stats['SE'] = stat.sem(boot_df)
     sum_stats['median'] = boot_df.median()
     sum_stats['skew'] = boot_df.skew()
     sum_stats['kurtosis'] = boot_df.kurtosis()
@@ -74,10 +73,9 @@ def kdefig(figu, dtf, x, bw, dtfob, obj):
         sns.kdeplot(data=dtf, x=x, bw_adjust=s,
                     ax=figu.axes[0]).legend(labels=Sp)
 
-    figu.axes[0].set_title('Smoothing Parameters')
     # Bottom Part of Figure
     sns.kdeplot(data=dtf, x=x, bw_adjust=bw, ax=figu.axes[1])
-    figu.axes[1].set_title(str(bw)+' Smoothing')
+
     # Add Ibjective Distribution
     if obj:
         sns.kdeplot(data=dtfob, x="Objective", bw_adjust=0.3, ax=figu.axes[1],
@@ -91,7 +89,7 @@ def kdefigCT(figu, dtf, dtfCG, dtfTG, x, bw, tname, dtfob, obj):
                 ax=figu.axes[0], fill=True).set(xlabel=None)
     sns.kdeplot(data=dtfTG, x=x, bw_adjust=bw,
                 ax=figu.axes[2], color='darkorange', fill=True)
-    figu.axes[0].set_title('KDE Control vs Treatmet')
+
     if obj:
         sns.kdeplot(data=dtfob, x="Objective", bw_adjust=0.3, ax=figu.axes[0],
                     linestyle="--", color="red",
@@ -104,17 +102,16 @@ def kdefigCT(figu, dtf, dtfCG, dtfTG, x, bw, tname, dtfob, obj):
     sns.kdeplot(data=dtf, x=x, bw_adjust=bw,
                 hue=tname, cumulative=True, common_norm=False,
                 common_grid=True, ax=figu.axes[3]).set(ylabel=None)
-    figu.axes[1].set_title('Histograms & CDFs')
+
 
 # Obtain Violin and Boxplots
 
 
 def vioandbox(figu, dtf, tname, y, bw):
     sns.violinplot(data=dtf, x=tname, y=y, ax=figu.axes[0], bw=bw)
-    figu.axes[0].set_title('Violin Plot')
 
     sns.boxplot(data=dtf, x=tname, y=y, ax=figu.axes[1]).set(ylabel=None)
-    figu.axes[1].set_title('Box Plot')
+
 
 # Joint Plot AveExp with Ave Stock Allocation
 
@@ -142,7 +139,7 @@ def contrast(dtf, dtfCG, dtfTG, dtOB, x, y, ob, tname, levels, reg, refl):
 dfOb = pd.read_csv('ObjDistribution.csv', header=0)
 stOb = calc_sum_stats(dfOb['Objective'])
 
-# #  ########### $$ Objective Return Distribution 40 Cochort$$ ################
+# # #  ########### $$ Objective Return Distribution 40 Cochort$$ ################
 # 'SP 500 Return Stream from 1925 to 1964'
 plt.figure(2)
 plt.plot(dfOb['Actual Year'], dfOb['Return'], 'o-')
@@ -160,7 +157,7 @@ plt.axhline(y=dfOb['Return'].mean(), color='r', label='Average')
 plt.text(1929, dfOb['Return'].mean()+0.01, '(Mean = 7.89%)')
 plt.xlabel('Period')
 plt.ylabel('(%) Return')
-plt.title('SP 500 Return Stream from 1925 to 1964')
+
 (plt.xticks(range(dfOb['Actual Year'].min(),
                   dfOb['Actual Year'].max()+1, 1), rotation=50))
 
@@ -171,69 +168,70 @@ dtf40, dtf40ST, dtf40LT, stats40 = split('40PerSubjectData.csv',
 print(dtf40ST.Subject.unique())
 print(dtf40LT.Subject.unique())
 
-G40stats = pd.concat([stats40, stOb], axis=1)
-print(G40stats.to_latex(index=True))
+# G40stats = pd.concat([stats40, stOb], axis=1)
+# print(G40stats.to_latex(index=True))
 
-# Create First Figure KDE
+# Create First Figure KDE (Marginal Distribution)
 fig, axes = plt.subplots(2, sharex=True)
-fig.suptitle('40 Cohort - Kernel Density Estimation')
+
 kdefig(fig, dtf40, 'Belief', 0.4, dfOb, obj=True)
 
 
-# Create Second Figure Group Comparison
+# Create Second Figure Group Comparison (Conditional Distribution)
 fig1, ax = plt.subplots(2, 2, sharex=True)
 for i in range(0, 4):
     fig1.axes[i].grid(True)
-fig1.suptitle('40 Cohort - Treatmet Comparison')
+
 kdefigCT(fig1, dtf40, dtf40ST, dtf40LT, 'Belief',
          0.3, 'Treatment (D)', dfOb, obj=True)
 
 # Create Third Visualization
 fig2, axes = plt.subplots(1, 2, sharey=True)
-fig2.suptitle('40 Cohort - Treatmet Comparison')
+
 vioandbox(fig2, dtf40, 'Treatment (D)', 'Belief', 0.2)
-
-# Create Bivariate Plot
-contrast(dtf40, dtf40ST, dtf40LT, dfOb, 'Belief', 'PerAllo', 'Objective',
-         'Treatment (D)', 5, reg=False, refl=True)
-contrast(dtf40, dtf40ST, dtf40LT, dfOb, 'Belief', 'PerAllo', 'Objective',
-         'Treatment (D)', 5, reg=True, refl=False)
-
-# Per Subject in Control Group
-min = dtf40ST['Belief'].min()-0.1
-max = dtf40ST['Belief'].max()+0.1
-
-z = sns.FacetGrid(dtf40ST, col='Subject', col_wrap=5,
-                  height=3, ylim=(min, max), aspect=1.4)
-(z.map_dataframe(facetgrid_two_axes, dual_axis=True)
-    .set_axis_labels("Period", "Belief"))
-z.map(plt.fill_betweenx, y=[-1, 1], x1=1, x2=2, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=4, x2=7, alpha=0.5, color='red')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=9, x2=10, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=11, x2=13, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=14, x2=17, alpha=0.5, color='silver')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=21, x2=22, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=27, x2=29, alpha=0.5, color='silver')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=30, x2=33, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=34, x2=36, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=37, x2=38, alpha=0.5, color='silver')
-
-# Per Subject in Treatmet Group
-min = dtf40LT['Belief'].min()-0.1
-max = dtf40LT['Belief'].max()+0.1
-
-z = sns.FacetGrid(dtf40LT, col='Subject', col_wrap=5,
-                  height=3, ylim=(min, max), aspect=1.4)
-(z.map_dataframe(facetgrid_two_axes, dual_axis=True)
-    .set_axis_labels("Period", "Belief"))
-z.map(plt.fill_betweenx, y=[-1, 1], x1=1, x2=2, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=4, x2=7, alpha=0.5, color='red')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=9, x2=10, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=11, x2=13, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=14, x2=17, alpha=0.5, color='silver')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=21, x2=22, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=27, x2=29, alpha=0.5, color='silver')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=30, x2=33, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=34, x2=36, alpha=0.5, color='crimson')
-z.map(plt.fill_betweenx, y=[-1, 1], x1=37, x2=38, alpha=0.5, color='silver')
 plt.show()
+#
+# # Create Bivariate Plot
+# contrast(dtf40, dtf40ST, dtf40LT, dfOb, 'Belief', 'PerAllo', 'Objective',
+#          'Treatment (D)', 5, reg=False, refl=True)
+# contrast(dtf40, dtf40ST, dtf40LT, dfOb, 'Belief', 'PerAllo', 'Objective',
+#          'Treatment (D)', 5, reg=True, refl=False)
+#
+# # Per Subject in Control Group
+# min = dtf40ST['Belief'].min()-0.1
+# max = dtf40ST['Belief'].max()+0.1
+#
+# z = sns.FacetGrid(dtf40ST, col='Subject', col_wrap=5,
+#                   height=3, ylim=(min, max), aspect=1.4)
+# (z.map_dataframe(facetgrid_two_axes, dual_axis=True)
+#     .set_axis_labels("Period", "Belief"))
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=1, x2=2, alpha=0.5, color='crimson')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=4, x2=7, alpha=0.5, color='red')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=9, x2=10, alpha=0.5, color='crimson')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=11, x2=13, alpha=0.5, color='crimson')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=14, x2=17, alpha=0.5, color='silver')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=21, x2=22, alpha=0.5, color='crimson')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=27, x2=29, alpha=0.5, color='silver')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=30, x2=33, alpha=0.5, color='crimson')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=34, x2=36, alpha=0.5, color='crimson')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=37, x2=38, alpha=0.5, color='silver')
+#
+# # Per Subject in Treatmet Group
+# min = dtf40LT['Belief'].min()-0.1
+# max = dtf40LT['Belief'].max()+0.1
+#
+# z = sns.FacetGrid(dtf40LT, col='Subject', col_wrap=5,
+#                   height=3, ylim=(min, max), aspect=1.4)
+# (z.map_dataframe(facetgrid_two_axes, dual_axis=True)
+#     .set_axis_labels("Period", "Belief"))
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=1, x2=2, alpha=0.5, color='crimson')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=4, x2=7, alpha=0.5, color='red')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=9, x2=10, alpha=0.5, color='crimson')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=11, x2=13, alpha=0.5, color='crimson')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=14, x2=17, alpha=0.5, color='silver')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=21, x2=22, alpha=0.5, color='crimson')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=27, x2=29, alpha=0.5, color='silver')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=30, x2=33, alpha=0.5, color='crimson')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=34, x2=36, alpha=0.5, color='crimson')
+# z.map(plt.fill_betweenx, y=[-1, 1], x1=37, x2=38, alpha=0.5, color='silver')
+# plt.show()

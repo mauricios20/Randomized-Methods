@@ -2,8 +2,9 @@ import os
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-
+import statistics
 from scipy import stats
+import scipy.stats as stat
 
 # Description
 # Analysis for Group in the 20 year cathegory
@@ -18,6 +19,8 @@ os.chdir("C:/Users/mauri/Dropbox/Family Room/1 Hi Lo Exp Data/Randomization Meth
 
 def calc_sum_stats(boot_df):
     sum_stats = boot_df.describe().T[['count', 'mean', 'std', 'min', 'max']]
+    sum_stats['variance'] = statistics.variance(boot_df)
+    sum_stats['SE'] = stat.sem(boot_df)
     sum_stats['median'] = boot_df.median()
     sum_stats['skew'] = boot_df.skew()
     sum_stats['kurtosis'] = boot_df.kurtosis()
@@ -43,6 +46,27 @@ def split(fname, col, tname, CG, TG):
     stats = pd.concat([st, stCG, stTG], axis=1,
                       keys=['Overall', 'Control', 'Treatment'])
     return dtf, dtfCG, dtfTG, stats
+
+
+# Marginal Distribution
+
+
+def margfig(figu, dtf, x, bw, dtfob, obj):
+    # Top of Figure
+    Sp = [0.2, 0.3, 0.4, 0.5]  # Smoothing Parameter
+    for s in Sp:
+        sns.kdeplot(data=dtf, x=x, bw_adjust=s,
+                    ax=figu.axes[0]).legend(labels=Sp)
+
+    # Bottom Part of Figure
+    sns.kdeplot(data=dtf, x=x, bw_adjust=bw, ax=figu.axes[1])
+
+    # Add Ibjective Distribution
+    if obj:
+        sns.kdeplot(data=dtfob, x="Objective", bw_adjust=bw, ax=figu.axes[1],
+                    linestyle="--", color="red",
+                    legend=True).legend(labels=['Observed', 'Objective'])
+
 
 # Create KernelDensity Figures
 
@@ -95,11 +119,7 @@ def kdefig(figu, dtfCG, dtfTG, x, y, bw, dtfob, obj):
     g.set_xlabel('Average Belief')
     g.legend(loc='upper left')
 
-    # Titles
-    figu.axes[0].set_title('Kernel Densities with ' + str(bw)+' Smoothing')
-    figu.axes[1].set_title('Cummulative Distribution')
-    figu.axes[2].set_title('Control Group Regression')
-    figu.axes[3].set_title('Treatment Group Regression')
+
 # Two figures two axis
 
 
@@ -171,7 +191,7 @@ PerP40ST = dtf40ST.groupby(['Year']).mean()
 PerP40LT = dtf40LT.groupby(['Year']).mean()
 
 # # Get statics for each Period in each Group
-
+#
 # P40stats = calc_sum_stats(PerP40['Belief'])
 # P40STstats = calc_sum_stats(PerP40ST['Belief'])
 # P40LTstats = calc_sum_stats(PerP40LT['Belief'])
@@ -181,28 +201,31 @@ PerP40LT = dtf40LT.groupby(['Year']).mean()
 #
 # print(GP40stats.to_latex(index=True))
 
+# Create Marginal Distribution
+fig0, axes = plt.subplots(2, sharex=True)
+margfig(fig0, PerP40, 'Belief', 0.4, dfObNC, obj=True)
+
 
 # Create First Figure KDE
 
 fig, axes = plt.subplots(2, 2)
-fig.suptitle('Per Period Comparison 40 Cohort')
 kdefig(fig, PerP40ST, PerP40LT, 'Belief', 'PerAllo', 0.4, dfOb, obj=True)
-
-
-# Create Belief vs Per Allaction
-fig, (ax1, ax2) = plt.subplots(2, figsize=(10, 4))
-ax1, ax1a = two_scales(ax1, PerP40ST.index, PerP40ST['Belief'],
-                       PerP40ST['PerAllo'], '#1f77b4', 'green')
-ax2, ax2a = two_scales(ax2, PerP40ST.index, PerP40LT['Belief'],
-                       PerP40LT['PerAllo'], '#ff7f0e', 'green')
-fig.suptitle('Control vs Treatment Per Period Comparison')
-
-# Bivariate Plot
-contrast(PerP40ST, dfOb, 'Belief',
-         'PerAllo', 'Objective', 5, True, '#1f77b4', '#d62728', 'Black')
-
-# Bivariate Plot
-contrast(PerP40LT, dfOb, 'Belief',
-         'PerAllo', 'Objective', 5, True, '#ff7f0e', '#d62728', 'Black')
-
 plt.show()
+#
+# # Create Belief vs Per Allaction
+# fig, (ax1, ax2) = plt.subplots(2, figsize=(10, 4))
+# ax1, ax1a = two_scales(ax1, PerP40ST.index, PerP40ST['Belief'],
+#                        PerP40ST['PerAllo'], '#1f77b4', 'green')
+# ax2, ax2a = two_scales(ax2, PerP40ST.index, PerP40LT['Belief'],
+#                        PerP40LT['PerAllo'], '#ff7f0e', 'green')
+# fig.suptitle('Control vs Treatment Per Period Comparison')
+#
+# # Bivariate Plot
+# contrast(PerP40ST, dfOb, 'Belief',
+#          'PerAllo', 'Objective', 5, True, '#1f77b4', '#d62728', 'Black')
+#
+# # Bivariate Plot
+# contrast(PerP40LT, dfOb, 'Belief',
+#          'PerAllo', 'Objective', 5, True, '#ff7f0e', '#d62728', 'Black')
+#
+# plt.show()
