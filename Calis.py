@@ -105,4 +105,4 @@ sns.kdeplot(data=dfOb, x="Rdecimal", bw_adjust=0.2,
 fig5.axes[1].set_title('Cumulative Distribution Functions')
 plt.show()
 
-print('Le hichimos unos cambios pa ver si pudeo mandar')
+print('dejate de mamadas ponte a escribir')
