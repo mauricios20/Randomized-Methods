@@ -104,3 +104,5 @@ sns.kdeplot(data=dfOb, x="Rdecimal", bw_adjust=0.2,
             cumulative=True, common_norm=False, common_grid=True, ax=fig5.axes[1])
 fig5.axes[1].set_title('Cumulative Distribution Functions')
 plt.show()
+
+print('Le hichimos unos cambios pa ver si pudeo mandar')
