@@ -52,7 +52,9 @@ def MC(Subjects, Glen, nper, dtf):
     print('Number of observations that are >= than the observed kurtosis in ' +
           str(nper) + ' permutations is:' + str(count))
     p_value = count/len(permu[2])
+    corrected = (count+1)/(len(permu[2])+1)
     print(p_value)
+    print(round(corrected, 3))
     print('P(|Observed Diff|>={0:}) = {1:.2f}'.format(obs, p_value))
 
     a = 0.05
