@@ -62,7 +62,7 @@ def MC(Subjects, Glen, nper, dtf):
     if p_value < a:
         print('Reject the null hypothesis of no Treatment effect, thus treatment worked')
     else:
-        print('Fail to reject the null hypothesis, thus treatment did not work you lil piece of shit')
+        print('Fail to reject the null hypothesis, thus treatment did not work')
 
     return permu
 # Split Data Frame
@@ -135,6 +135,8 @@ MCfig(fig, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
 fig.axes[0].set_xlabel('Kurtosis Difference')
 fig.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
 fig.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
+fig.axes[0].text(1.2, 0.075, str(obs), rotation=90, verticalalignment='center')
+fig.axes[0].text(-1.7, 0.075, str(-obs), rotation=90, verticalalignment='center')
 plt.show()
 
 # ######################## # Sanity Check # ###################################
