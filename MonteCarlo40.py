@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 # Analysis for Group in the 20 year cathegory
 # Treatmet (D): Treatement Description (0 ST, 1 LT)
 
-os.chdir("C:/Users/mauri/Dropbox/Family Room/1 Hi Lo Exp Data/Randomization Methods/Data")
+path = '/Users/mau/Dropbox/Mac/Documents/Dissertation/Safford2018/Data'
+os.chdir(path)
 
 # # Define Functions
 # Calculate T Statistic
