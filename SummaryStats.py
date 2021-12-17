@@ -54,7 +54,6 @@ stObDC = calc_sum_stats(dfObDC['Objective'])
 dfObNC = dfOb[dfOb['Actual Year'] >= 1945]  # Post Crash
 stObNC = calc_sum_stats(dfObNC['Objective'])
 
-print(dfOb)
 
 #  ################ $$ All Stats $$ ####################
 dtf20, dtf20ST, dtf20LT, st20, st20CG, st20TG = split('20PerSubjectData.csv',
@@ -63,13 +62,18 @@ dtf40, dtf40ST, dtf40LT, st40, st40CG, st40TG = split('40PerSubjectData.csv',
                                          'Belief', 'Treatment (D)', 0, 1)
 
 
-# Gstats = pd.concat([st40, stOb, st20, stObNC], axis=1,
-#                 keys=['Marginal40', 'Objective', 'Marginal20', 'Objective'])
-# print(Gstats.round(3).to_latex(index=True))
-#
-# CTstats = pd.concat([st40CG, st40TG, st20CG, st20TG], axis=1,
-#                 keys=['Control40', 'Treat40', 'Control20', 'Treat20'])
-# print(CTstats.round(3).to_latex(index=True))
+
+#  ################ $$ Overall $$ ####################
+
+C0stats = pd.concat([st40, stOb, st20, stObNC], axis=1,
+                keys=['Mar40', 'Objective', 'Mar20', 'Objective'])
+print(C0stats.round(3).to_latex(index=True))
+
+#  ################ $$ Short vs. Long Term Description $$ ####################
+
+Cstats = pd.concat([st40CG, st40TG, st20CG, st20TG], axis=1,
+                keys=['Control', 'Treatment', 'Control', 'Treatment'])
+print(Cstats.round(3).to_latex(index=True))
 
 #  ################ $$ During Crash vs. No Crash $$ ####################
 dtf40DC = dtf40[dtf40['Year'] <= 20]
