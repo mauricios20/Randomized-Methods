@@ -89,8 +89,3 @@ st40PC = calc_sum_stats(dtf40PC['Belief'])
 C2stats = pd.concat([st40PC, stObNC, st20, stObNC], axis=1,
                 keys=['Post C', 'Objective', 'No Crash', 'Objective'])
 print(C2stats.round(3).to_latex(index=True))
-
-#  ################ $$ During Crash vs.  Post Crash $$ ####################
-C3stats = pd.concat([st40DC, stObDC, st40PC, stObNC], axis=1,
-                keys=['During C', 'ObjectiveDC', 'Post C', 'ObjectivePC'])
-print(C3stats.round(3).to_latex(index=True))
