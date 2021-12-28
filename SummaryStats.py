@@ -86,8 +86,10 @@ print(C1stats.round(3).to_latex(index=True))
 #  ################ $$ Post Crash vs.  No Crash $$ ####################
 dtf40PC = dtf40[dtf40['Year'] >= 21]
 st40PC = calc_sum_stats(dtf40PC['Belief'])
+
 C2stats = pd.concat([st40PC, st20, stObNC], axis=1,
                 keys=['Post C', 'Marginal20', 'Objective'])
+
 print(C2stats.round(3).to_latex(index=True))
 
 #  ################ $$ During Crash vs.  Post Crash $$ ####################
