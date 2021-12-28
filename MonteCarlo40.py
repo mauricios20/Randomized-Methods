@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 # Analysis for Group in the 20 year cathegory
 # Treatmet (D): Treatement Description (0 ST, 1 LT)
 
-os.chdir("C:/Users/mauri/Dropbox/Family Room/1 Hi Lo Exp Data/Randomization Methods/Data")
+path = '/Users/mau/Dropbox/Mac/Documents/Dissertation/Safford2018/Data'
+os.chdir(path)
 
 # # Define Functions
 # Calculate T Statistic
@@ -61,7 +62,7 @@ def MC(Subjects, Glen, nper, dtf):
     if p_value < a:
         print('Reject the null hypothesis of no Treatment effect, thus treatment worked')
     else:
-        print('Fail to reject the null hypothesis, thus treatment did not work you lil piece of shit')
+        print('Fail to reject the null hypothesis, thus treatment did not work')
 
     return permu
 # Split Data Frame
@@ -134,6 +135,8 @@ MCfig(fig, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
 fig.axes[0].set_xlabel('Kurtosis Difference')
 fig.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
 fig.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
+fig.axes[0].text(1.2, 0.075, str(obs), rotation=90, verticalalignment='center')
+fig.axes[0].text(-1.7, 0.075, str(-obs), rotation=90, verticalalignment='center')
 plt.show()
 
 # ######################## # Sanity Check # ###################################
