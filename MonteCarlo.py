@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 # Analysis for Group in the 20 year cathegory
 # Treatmet (D): Treatement Description (0 ST, 1 LT)
 
-os.chdir("C:/Users/mauri/Dropbox/Family Room/1 Hi Lo Exp Data/Randomization Methods/Data")
+path = '/Users/mau/Dropbox/Mac/Documents/Dissertation/Safford2018/Data'
+os.chdir(path)
 
 # # Define Functions
 # Calculate T Statistic
@@ -48,7 +49,7 @@ def MC(Subjects, GlenC, nper, dtf):
           str(nper) + ' permutations is:' + str(count))
     p_value = count/len(permu[2])
     corrected = (count+1)/(len(permu[2])+1)
-    print(p_value)
+    print(round(p_value, 3))
     print(round(corrected, 3))
     print('P(|Observed Diff|>={0:}) = {1:.2f}'.format(obs, p_value))
 
@@ -56,7 +57,7 @@ def MC(Subjects, GlenC, nper, dtf):
     if p_value < a:
         print('Reject the null hypothesis of no Treatment effect, thus treatment worked')
     else:
-        print('Fail to reject the null hypothesis, thus treatment did not work you lil piece of shit')
+        print('Fail to reject the null hypothesis, thus treatment did not work')
 
     return permu
 # Split Data Frame
@@ -98,9 +99,8 @@ def MCfig(figu, dtf, dtf2, dtf3, dtf4, dtf5, x, bw):
                 legend=True).legend(labels=['1,000', '2,500', '5,000', '7,500', '10,000'])
 #############################################################################
 # # ################ $$$ Monte Carlo $$$ ######################
+# Load the Data
 
-
-# #  ################ $$ Per Subject 40 Cohort $$ ####################
 
 dtf40, dtf40ST, dtf40LT = split('40PerSubjectData.csv',
                                 'Belief', 'Treatment (D)', 0, 1)
@@ -109,20 +109,24 @@ dtf20, dtf20ST, dtf20LT = split('20PerSubjectData.csv',
                                 'Belief', 'Treatment (D)', 0, 1)
 
 
-res0 = calc_diff_kurt(dtf20, dtf40, 'Belief', 2)
-dtfall = dtf20.append(dtf40, sort=False)
+# #  ################ $$ During Crash vs. No Crash $$ ####################
+
+dtf40DC = dtf40[dtf40['Year'] <= 20]
+res0 = calc_diff_kurt(dtf20, dtf40DC, 'Belief', 2)
+dtfall = dtf20.append(dtf40DC, sort=False)
 Subjects = dtfall.Subject.unique()
 GlenC = len(dtf20.Subject.unique())
 
+# print(dtfall.tail(25))
 
 # Run Multiple Permutations
 random.seed(180)
 obs = abs(res0[2])
 permu1 = MC(Subjects, GlenC, 1000, dtfall)
-permu2 = MC(Subjects, GlenC, 2500, dtf40)
-permu3 = MC(Subjects, GlenC, 5000, dtf40)
-permu4 = MC(Subjects, GlenC, 7500, dtf40)
-permu5 = MC(Subjects, GlenC, 10000, dtf40)
+permu2 = MC(Subjects, GlenC, 2500, dtfall)
+permu3 = MC(Subjects, GlenC, 5000, dtfall)
+permu4 = MC(Subjects, GlenC, 7500, dtfall)
+permu5 = MC(Subjects, GlenC, 10000, dtfall)
 
 print(permu1.head(3).to_latex(index=True))
 print(permu3.head(3).to_latex(index=True))
@@ -133,26 +137,35 @@ MCfig(fig, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
 fig.axes[0].set_xlabel('Kurtosis Difference')
 fig.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
 fig.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
-plt.show()
+fig.axes[0].text(5, 0.120, str(obs), rotation=90, verticalalignment='center')
+fig.axes[0].text(-5.1, 0.120, str(-obs), rotation=90, verticalalignment='center')
+# #  ################ $$ Post Crash vs. No Crash $$ ####################
 
-# ######################## # Sanity Check # ###################################
-# print(groupings[0][0])
-# print(groupings[0][1])
-# dtfCG = dtf40.loc[dtf40['Subject'].isin(groupings[0][0])]
-# dtfTG = dtf40.loc[dtf40['Subject'].isin(groupings[0][1])]
-#
-# print(calc_diff_kurt(dtfCG, dtfTG, 'Belief', 2))
-# res1 = calc_diff_kurt(dtfCG, dtfTG, 'Belief', 2)
-# # # Check
-# # print(dtfCG.head(5))
-# # print(dtfCG.tail(5))
-# # print(dtfTG.head(5))
-# # print(dtfTG.tail(5))
-# # print(len(dtfCG['Subject']))  # Check if N matches group  (760)
-# # print(dtfCG['Subject'].unique())  # Check if Lenght of group matches (19)
-#
-#
-# firs = pd.DataFrame(data=[res0])
-# per = pd.DataFrame(data=[res1])
-# final = firs.append(per)
-# print(final)
+dtf40PC = dtf40[dtf40['Year'] >= 21]
+res0 = calc_diff_kurt(dtf20, dtf40PC, 'Belief', 2)
+dtfall2 = dtf20.append(dtf40PC, sort=False)
+Subjects = dtfall2.Subject.unique()
+
+# print(dtfall.tail(25))
+
+# Run Multiple Permutations
+random.seed(180)
+obs = abs(res0[2])
+permu1 = MC(Subjects, GlenC, 1000, dtfall2)
+permu2 = MC(Subjects, GlenC, 2500, dtfall2)
+permu3 = MC(Subjects, GlenC, 5000, dtfall2)
+permu4 = MC(Subjects, GlenC, 7500, dtfall2)
+permu5 = MC(Subjects, GlenC, 10000, dtfall2)
+
+print(permu1.head(3).to_latex(index=True))
+print(permu3.head(3).to_latex(index=True))
+print(permu5.head(3).to_latex(index=True))
+# Plot kernel densities of each permuatation
+fig1, axes = plt.subplots()
+MCfig(fig1, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
+fig1.axes[0].set_xlabel('Kurtosis Difference')
+fig1.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
+fig1.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
+fig1.axes[0].text(4, 0.10, str(obs), rotation=90, verticalalignment='center')
+fig1.axes[0].text(-4.6, 0.10, str(-obs), rotation=90, verticalalignment='center')
+plt.show()
