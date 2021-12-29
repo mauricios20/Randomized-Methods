@@ -82,6 +82,7 @@ def kdefig(figu, dtf, x, bw, dtfob, obj):
         sns.kdeplot(data=dtfob, x="Objective", bw_adjust=0.3, ax=figu.axes[1],
                     linestyle="--", color="red",
                     legend=True).legend(labels=['Observed', 'Objective'])
+
 # Obtain the KernelDensity for each Treatmet
 
 
