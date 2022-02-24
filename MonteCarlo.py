@@ -139,6 +139,7 @@ fig.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
 fig.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
 fig.axes[0].text(5, 0.120, str(obs), rotation=90, verticalalignment='center')
 fig.axes[0].text(-5.1, 0.120, str(-obs), rotation=90, verticalalignment='center')
+
 # #  ################ $$ Post Crash vs. No Crash $$ ####################
 
 dtf40PC = dtf40[dtf40['Year'] >= 21]
