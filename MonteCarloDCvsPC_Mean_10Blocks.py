@@ -75,20 +75,18 @@ dtf20, dtf20ST, dtf20LT = split('20PerSubjectData.csv',
 # #  ################ $$ During Crash vs. Post Crash $$ ####################
 # Overall
 
-dtf40DC = dtf40[dtf40['Year'] <= 20]
-dtf40PC = dtf40[dtf40['Year'] >= 21]
-
-res = calc_diff_mean(dtf40PC, dtf40DC, 'Belief', 2)
-print(res)
+dtf40B1 = dtf40[dtf40['Year'] <= 20]
 
 # #  ################ $$ During Crash vs. Post Crash $$ ####################
 # Per Subject
 Subjects = dtf40.Subject.unique()
-Years = dtf40.Year.unique()
+Years = dtf40B1.Year.unique()
 Ylen = int(len(Years)/2)
-DC = Years[:Ylen]
-PC = Years[Ylen:]
+B1 = Years[:Ylen]
+B2 = Years[Ylen:]
 
+print(B1)
+print(B2)
 # Create a data frame dictionary to store your data frames
 
 DataFrameDict = {elem: pd.DataFrame for elem in Subjects}
@@ -98,14 +96,18 @@ print(DataFrameDict.keys()) # Look at the keys, Keys = Subject ID
 Tobs = pd.DataFrame()
 for key in DataFrameDict.keys():
     DataFrameDict[key] = dtf40[dtf40['Subject'] == key]
-    dtfDC = DataFrameDict[key][DataFrameDict[key].Year <= 20]
-    dtfPC = DataFrameDict[key][DataFrameDict[key].Year >= 21]
-    res = calc_diff_mean(dtfPC, dtfDC, 'Belief', 2)
+    dtfB1 = DataFrameDict[key][DataFrameDict[key].Year <= 10]
+    thresh_low = 11
+    thresh_high = 20
+    mask = (DataFrameDict[key].Year >= thresh_low) & (DataFrameDict[key].Year <= thresh_high)
+    dtfB2 = DataFrameDict[key][mask]
+    res = calc_diff_mean(dtfB2, dtfB1, 'Belief', 2)
     dt = pd.DataFrame(data=[res])
     Tobs = Tobs.append(dt, ignore_index=True)
 
 Tobs.set_index(Subjects, inplace=True)
 print(Tobs)
+
 
 # #### Monte Carlo ########
 
@@ -117,11 +119,11 @@ for key in PermuFrameDict.keys():
     for __ in range(10000):  # Doing 2 iterations.
         # Groups and positions will be assigned in order, so shuffle beforehand.
         random.shuffle(Years)
-        DC = Years[:Ylen]
-        PC = Years[Ylen:]
-        dtfCG = DataFrameDict[key].loc[DataFrameDict[key].Year.isin(PC)]
-        dtfTG = DataFrameDict[key].loc[DataFrameDict[key].Year.isin(DC)]
-        resMC = calc_diff_mean(dtfCG, dtfTG, 'Belief', 2)
+        B1 = Years[:Ylen]
+        B2 = Years[Ylen:]
+        dtfB1 = DataFrameDict[key].loc[DataFrameDict[key].Year.isin(B1)]
+        dtfB2 = DataFrameDict[key].loc[DataFrameDict[key].Year.isin(B2)]
+        resMC = calc_diff_mean(dtfB2, dtfB1, 'Belief', 2)
         dtMC = pd.DataFrame(data=[resMC])
         PermuFrameDict[key] = PermuFrameDict[key].append(dtMC, ignore_index=True)
 
