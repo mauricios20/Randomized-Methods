@@ -97,6 +97,10 @@ Ylen = int(len(Years)/2)
 DC = Years[:Ylen]
 PC = Years[Ylen:]
 
+# Total number of observations only for demostration
+print(Ylen)
+print(DC)
+print(PC)
 # Create a data frame dictionary to store your data frames
 
 DataFrameDict = {elem: pd.DataFrame for elem in Subjects}
@@ -113,6 +117,9 @@ for key in DataFrameDict.keys():
     Tobs = Tobs.append(dt, ignore_index=True)
 
 Tobs.set_index(Subjects, inplace=True)
+Tobs.rename(columns={0: "TcObsB", 1: "TtObsB", 2: "TObsB",
+                    3: "TcObsPA", 4: "TtObsPA", 5: "TObsPA",
+                    6: "TcObsE", 7: "TtObsE", 8: "TObsE"})
 print(Tobs)
 
 # #### Monte Carlo ########
@@ -122,18 +129,24 @@ PermuFrameDict = {elem: pd.DataFrame for elem in Subjects}
 
 for key in PermuFrameDict.keys():
     PermuFrameDict[key] = pd.DataFrame()
-    for __ in range(5000):  # Doing 2 iterations.
+    for __ in range(3):  # Doing 2 iterations.
         # Groups and positions will be assigned in order, so shuffle beforehand.
         random.shuffle(Years)
+        print(Years)
         DC = Years[:Ylen]
+        print(DC)
         PC = Years[Ylen:]
+        print(PC)
         dtfCG = DataFrameDict[key].loc[DataFrameDict[key].Year.isin(PC)]
         dtfTG = DataFrameDict[key].loc[DataFrameDict[key].Year.isin(DC)]
         resMC = calc_diff_mean(dtfCG, dtfTG, 'Belief', 'PerAllo', 'EAB', 2)
+        print(resMC)
         dtMC = pd.DataFrame(data=[resMC])
         PermuFrameDict[key] = PermuFrameDict[key].append(dtMC, ignore_index=True)
 
+print(PermuFrameDict[105]) # Change Subject ID to see other results
 # Belief is 2, PA is 5, and EA is 8
+
 dt_Beliefs = result(2, 0.05)
 dt_PerAllo = result(5, 0.05)
 dt_EA = result(8, 0.05)
@@ -141,65 +154,3 @@ dt_EA = result(8, 0.05)
 print(dt_Beliefs)
 print(dt_PerAllo)
 print(dt_EA)
-# print(Tobs.loc[44, [2]])
-# print(PermuFrameDict[41])
-    # print(PC)
-    # print(dtfCG[['Year', 'Belief']])
-    # print(DC)
-    # print(dtfTG[['Year', 'Belief']])
-
-
-#
-# print(len(permu[2]))
-# obs = abs(res0[2])  # Observed result of experiment difference kurtosis
-# # to get numbers > k
-# count = sum(i >= obs for i in abs(permu[2]))
-#
-# # printing the intersection
-# print('Number of observations that are >= than the observed kurtosis in ' +
-#       str(nper) + ' permutations is:' + str(count))
-# p_value = count/len(permu[2])
-# corrected = (count+1)/(len(permu[2])+1)
-# print(round(p_value, 3))
-# print(round(corrected, 3))
-# print('P(|Observed Diff|>={0:}) = {1:.2f}'.format(obs, p_value))
-# for i in Subjects:
-#     DataFrameDict[i]
-
-
-# TO see what the loop is doing
-# dtfDC = DataFrameDict[41][DataFrameDict[41].Year <= 20]
-# dtfPC = DataFrameDict[41][DataFrameDict[41].Year >= 21]
-# res = calc_diff_kurt(dtfPC, dtfDC, 'Belief', 2)
-# dt = pd.DataFrame(data=[res])
-# Tobs = Tobs.append(dt)
-# Tobs.set_index(Subjects)
-
-# dt = pd.DataFrame(data=[res])
-
-
-
-
-# Run Multiple Permutations
-# random.seed(180)
-# obs = abs(res0[2])
-# permu1 = MC(Subjects, GlenC, 1000, dtfall)
-# permu2 = MC(Subjects, GlenC, 2500, dtfall)
-# permu3 = MC(Subjects, GlenC, 5000, dtfall)
-# permu4 = MC(Subjects, GlenC, 7500, dtfall)
-# permu5 = MC(Subjects, GlenC, 10000, dtfall)
-#
-# print(permu1.head(3).to_latex(index=True))
-# print(permu3.head(3).to_latex(index=True))
-# print(permu5.head(3).to_latex(index=True))
-# # Plot kernel densities of each permuatation
-# fig, axes = plt.subplots()
-# MCfig(fig, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
-# fig.axes[0].set_xlabel('Kurtosis Difference')
-# fig.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
-# fig.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
-# fig.axes[0].text(5, 0.120, str(obs), rotation=90, verticalalignment='center')
-# fig.axes[0].text(-5.1, 0.120, str(-obs), rotation=90, verticalalignment='center')
-#
-# # #  ################ $$ Post Crash vs. No Crash $$ ####################
-# plt.show()

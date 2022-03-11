@@ -186,26 +186,27 @@ kdefigCT(fig1, dtf20, dtf20ST, dtf20LT, 'Belief',
 fig2, axes = plt.subplots(1, 2, sharey=True)
 
 vioandbox(fig2, dtf20, 'Treatment (D)', 'Belief', 0.2)
-plt.show()
+
 # # Create Bivariate Plot
 # contrast(dtf20, dtf20ST, dtf20LT, dfObNC, 'Belief', 'PerAllo', 'Objective',
 #          'Treatment (D)', 5, reg=False, refl=True)
 # contrast(dtf20, dtf20ST, dtf20LT, dfObNC, 'Belief', 'PerAllo', 'Objective',
 #          'Treatment (D)', 5, reg=True, refl=False)
 # plt.show()
-# # Per Subject in Control Group
-# min = dtf20ST['Belief'].min()-0.1
-# max = dtf20ST['Belief'].max()+0.1
-#
-# z = sns.FacetGrid(dtf20ST, col='Subject', col_wrap=5,
-#                   height=3, ylim=(min, max), aspect=1.2)
-# (z.map_dataframe(facetgrid_two_axes, dual_axis=True)
-#     .set_axis_labels("Period", "Belief"))
-# z.map(plt.fill_betweenx, y=[-1, 1], x1=1, x2=2, alpha=0.5, color='crimson')
-# z.map(plt.fill_betweenx, y=[-1, 1], x1=7, x2=9, alpha=0.5, color='silver')
-# z.map(plt.fill_betweenx, y=[-1, 1], x1=10, x2=13, alpha=0.5, color='crimson')
-# z.map(plt.fill_betweenx, y=[-1, 1], x1=14, x2=16, alpha=0.5, color='crimson')
-# z.map(plt.fill_betweenx, y=[-1, 1], x1=17, x2=18, alpha=0.5, color='silver')
+# Per Subject in Control Group
+min = dtf20ST['Belief'].min()-0.1
+max = dtf20ST['Belief'].max()+0.1
+
+z = sns.FacetGrid(dtf20ST, col='Subject', col_wrap=5,
+                  height=3, ylim=(min, max), aspect=1.2)
+(z.map_dataframe(facetgrid_two_axes, dual_axis=True)
+    .set_axis_labels("Period", "Belief"))
+z.map(plt.fill_betweenx, y=[-1, 1], x1=1, x2=2, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=7, x2=9, alpha=0.5, color='silver')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=10, x2=13, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=14, x2=16, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=17, x2=18, alpha=0.5, color='silver')
+plt.show()
 #
 #
 # # Per Subject in Treatmet Group

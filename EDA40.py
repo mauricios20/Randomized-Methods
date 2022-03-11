@@ -191,7 +191,7 @@ kdefigCT(fig1, dtf40, dtf40ST, dtf40LT, 'Belief',
 fig2, axes = plt.subplots(1, 2, sharey=True)
 
 vioandbox(fig2, dtf40, 'Treatment (D)', 'Belief', 0.2)
-plt.show()
+
 #
 # # Create Bivariate Plot
 # contrast(dtf40, dtf40ST, dtf40LT, dfOb, 'Belief', 'PerAllo', 'Objective',
@@ -237,3 +237,53 @@ plt.show()
 # z.map(plt.fill_betweenx, y=[-1, 1], x1=34, x2=36, alpha=0.5, color='crimson')
 # z.map(plt.fill_betweenx, y=[-1, 1], x1=37, x2=38, alpha=0.5, color='silver')
 # plt.show()
+
+Subjects = dtf40.Subject.unique()
+Years = dtf40.Year.unique()
+print(Subjects)
+Group1 = Subjects[:19]
+Group2 = Subjects[19:]
+
+print(Group1)
+print(Group2)
+dtG1 = dtf40.loc[dtf40.Subject.isin(Group1)]
+dtG2 = dtf40.loc[dtf40.Subject.isin(Group2)]
+
+# Per Subject in Group 1
+min = dtG1['Belief'].min()-0.1
+max = dtG1['Belief'].max()+0.1
+
+z = sns.FacetGrid(dtG1, col='Subject', col_wrap=5,
+                  height=3, ylim=(min, max), aspect=1.4)
+(z.map_dataframe(facetgrid_two_axes, dual_axis=True)
+    .set_axis_labels("Period", "Belief"))
+z.map(plt.fill_betweenx, y=[-1, 1], x1=1, x2=2, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=4, x2=7, alpha=0.5, color='red')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=9, x2=10, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=11, x2=13, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=14, x2=17, alpha=0.5, color='silver')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=21, x2=22, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=27, x2=29, alpha=0.5, color='silver')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=30, x2=33, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=34, x2=36, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=37, x2=38, alpha=0.5, color='silver')
+
+# Per Subject in Group 2
+min = dtG2['Belief'].min()-0.1
+max = dtG2['Belief'].max()+0.1
+
+z = sns.FacetGrid(dtG2, col='Subject', col_wrap=5,
+                  height=3, ylim=(min, max), aspect=1.4)
+(z.map_dataframe(facetgrid_two_axes, dual_axis=True)
+    .set_axis_labels("Period", "Belief"))
+z.map(plt.fill_betweenx, y=[-1, 1], x1=1, x2=2, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=4, x2=7, alpha=0.5, color='red')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=9, x2=10, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=11, x2=13, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=14, x2=17, alpha=0.5, color='silver')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=21, x2=22, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=27, x2=29, alpha=0.5, color='silver')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=30, x2=33, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=34, x2=36, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=37, x2=38, alpha=0.5, color='silver')
+plt.show()
