@@ -17,18 +17,27 @@ os.chdir(path)
 # For MC Calculation
 
 
-def calc_diff_mean(dtfCG, dtfTG, x, y, z, n):
+def calc_diff_mean(fixed, b1, b2, x, y, z, n):
     list = []
-    meanxT = round(dtfTG[x].mean(), n)
-    meanxC = round(dtfCG[x].mean(), n)
-    Tx = round((meanxT-meanxC), n)
-    meanyT = round(dtfTG[y].mean(), n)
-    meanyC = round(dtfCG[y].mean(), n)
-    Ty = round((meanyT-meanyC), n)
-    meanzT = round(dtfTG[z].mean(), n)
-    meanzC = round(dtfCG[z].mean(), n)
-    Tz = round((meanzT-meanzC), n)
-    list.extend((meanxC, meanxT, Tx, meanyC, meanyT, Ty, meanzC, meanzT, Tz))
+    meanxb1 = round(b1[x].mean(), n)
+    meanxb2 = round(b2[x].mean(), n)
+    meanxf = round(fixed[x].mean(), n)
+    Txb1 = round((meanxf-meanxb1), n)
+    Txb2 = round((meanxf-meanxb2), n)
+
+    meanyb1 = round(b1[y].mean(), n)
+    meanyb2 = round(b2[y].mean(), n)
+    meanyf = round(fixed[y].mean(), n)
+    Tyb1 = round((meanyf-meanyb1), n)
+    Tyb2 = round((meanyf-meanyb2), n)
+
+    meanzb1 = round(b1[z].mean(), n)
+    meanzb2 = round(b2[z].mean(), n)
+    meanzf = round(fixed[z].mean(), n)
+    Tzb1 = round((meanzf-meanzb1), n)
+    Tzb2 = round((meanzf-meanzb2), n)
+    list.extend((meanxf, meanyf, meanzf, meanxb1, meanyb1, meanzb1,
+                meanxb2, meanyb2, meanzb2, Txb1, Tyb1, Tzb1, Txb2, Tyb2, Tzb2))
     return list
 
 # Split
@@ -85,16 +94,18 @@ print(dtf40.columns)
 # #  ################ $$ During Crash vs. Post Crash $$ ####################
 # Overall
 
-dtf40B1 = dtf40[dtf40['Year'] <= 20]
-
+FEB0 = dtf40[dtf40['Year'] <= 20]
+PEB0 = dtf40[dtf40['Year'] >= 21]
 # #  ################ $$ During Crash vs. Post Crash $$ ####################
 # Per Subject
 Subjects = dtf40.Subject.unique()
-Years = dtf40B1.Year.unique()
+YearsFE = FEB0.Year.unique()
+Years = PEB0.Year.unique()
 Ylen = int(len(Years)/2)
 B1 = Years[:Ylen]
 B2 = Years[Ylen:]
 
+print(YearsFE)
 print(B1)
 print(B2)
 # Create a data frame dictionary to store your data frames
@@ -106,17 +117,23 @@ print(DataFrameDict.keys()) # Look at the keys, Keys = Subject ID
 Tobs = pd.DataFrame()
 for key in DataFrameDict.keys():
     DataFrameDict[key] = dtf40[dtf40['Subject'] == key]
-    dtfB1 = DataFrameDict[key][DataFrameDict[key].Year <= 10]
-    thresh_low = 11
-    thresh_high = 20
-    mask = (DataFrameDict[key].Year >= thresh_low) & (DataFrameDict[key].Year <= thresh_high)
-    dtfB2 = DataFrameDict[key][mask]
-    res = calc_diff_mean(dtfB2, dtfB1, 'Belief', 'PerAllo', 'EAB', 2)
+    dtfFE = DataFrameDict[key][DataFrameDict[key].Year.isin(YearsFE)]
+    dtfB1 = DataFrameDict[key][DataFrameDict[key].Year.isin(B1)]
+    # thresh_low = 11
+    # thresh_high = 20
+    # mask = (DataFrameDict[key].Year >= thresh_low) & (DataFrameDict[key].Year <= thresh_high)
+    dtfB2 = DataFrameDict[key][DataFrameDict[key].Year.isin(B2)]
+    res = calc_diff_mean(dtfFE, dtfB1, dtfB2, 'Belief', 'PerAllo', 'EAB', 2)
     dt = pd.DataFrame(data=[res])
     Tobs = Tobs.append(dt, ignore_index=True)
 
 Tobs.set_index(Subjects, inplace=True)
 print(Tobs)
+Tobs.rename(columns={0: "YFE B", 1: "YFE PA", 2: "YFE EAB",
+                    3: "YB1 B", 4: "YB1 PA", 5: "YB1 EAB",
+                    6: "YB2 B", 7: "YB2 PA", 8: "YB2 EAB",
+                    9: "TobsB1 B", 10: "TobsB1 PA", 11: "TObsB1 EAB",
+                    12: "TobsB2 B", 13: "TobsB2 PA", 14: "TobsB2 EAB"})
 
 
 # #### Monte Carlo ########
@@ -126,78 +143,34 @@ PermuFrameDict = {elem: pd.DataFrame for elem in Subjects}
 
 for key in PermuFrameDict.keys():
     PermuFrameDict[key] = pd.DataFrame()
+    dtfFE = DataFrameDict[key][DataFrameDict[key].Year.isin(YearsFE)]
     for __ in range(5000):  # Doing 2 iterations.
         # Groups and positions will be assigned in order, so shuffle beforehand.
         random.shuffle(Years)
+        Years
         B1 = Years[:Ylen]
         B2 = Years[Ylen:]
         dtfB1 = DataFrameDict[key].loc[DataFrameDict[key].Year.isin(B1)]
         dtfB2 = DataFrameDict[key].loc[DataFrameDict[key].Year.isin(B2)]
-        resMC = calc_diff_mean(dtfB2, dtfB1, 'Belief', 'PerAllo', 'EAB', 2)
+        resMC = calc_diff_mean(dtfFE, dtfB2, dtfB1, 'Belief', 'PerAllo', 'EAB', 2)
         dtMC = pd.DataFrame(data=[resMC])
         PermuFrameDict[key] = PermuFrameDict[key].append(dtMC, ignore_index=True)
 
+PermuFrameDict[105]
+
 # Belief is 2, PA is 5, and EA is 8
-dt_Beliefs = result(2, 0.05)
-dt_PerAllo = result(5, 0.05)
-dt_EA = result(8, 0.05)
+dt_BeliefsB1 = result(9, 0.05)
+dt_PerAlloB1 = result(10, 0.05)
+dt_EAB1 = result(11, 0.05)
 
-print(dt_Beliefs)
-print(dt_PerAllo)
-print(dt_EA)
+dt_BeliefsB2 = result(12, 0.05)
+dt_PerAlloB2 = result(13, 0.05)
+dt_EAB2 = result(14, 0.05)
 
+dt_BeliefsB1
+dt_PerAlloB1
+dt_EAB1
 
-#
-# print(len(permu[2]))
-# obs = abs(res0[2])  # Observed result of experiment difference kurtosis
-# # to get numbers > k
-# count = sum(i >= obs for i in abs(permu[2]))
-#
-# # printing the intersection
-# print('Number of observations that are >= than the observed kurtosis in ' +
-#       str(nper) + ' permutations is:' + str(count))
-# p_value = count/len(permu[2])
-# corrected = (count+1)/(len(permu[2])+1)
-# print(round(p_value, 3))
-# print(round(corrected, 3))
-# print('P(|Observed Diff|>={0:}) = {1:.2f}'.format(obs, p_value))
-# for i in Subjects:
-#     DataFrameDict[i]
-
-
-# TO see what the loop is doing
-# dtfDC = DataFrameDict[41][DataFrameDict[41].Year <= 20]
-# dtfPC = DataFrameDict[41][DataFrameDict[41].Year >= 21]
-# res = calc_diff_kurt(dtfPC, dtfDC, 'Belief', 2)
-# dt = pd.DataFrame(data=[res])
-# Tobs = Tobs.append(dt)
-# Tobs.set_index(Subjects)
-
-# dt = pd.DataFrame(data=[res])
-
-
-
-
-# Run Multiple Permutations
-# random.seed(180)
-# obs = abs(res0[2])
-# permu1 = MC(Subjects, GlenC, 1000, dtfall)
-# permu2 = MC(Subjects, GlenC, 2500, dtfall)
-# permu3 = MC(Subjects, GlenC, 5000, dtfall)
-# permu4 = MC(Subjects, GlenC, 7500, dtfall)
-# permu5 = MC(Subjects, GlenC, 10000, dtfall)
-#
-# print(permu1.head(3).to_latex(index=True))
-# print(permu3.head(3).to_latex(index=True))
-# print(permu5.head(3).to_latex(index=True))
-# # Plot kernel densities of each permuatation
-# fig, axes = plt.subplots()
-# MCfig(fig, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
-# fig.axes[0].set_xlabel('Kurtosis Difference')
-# fig.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
-# fig.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
-# fig.axes[0].text(5, 0.120, str(obs), rotation=90, verticalalignment='center')
-# fig.axes[0].text(-5.1, 0.120, str(-obs), rotation=90, verticalalignment='center')
-#
-# # #  ################ $$ Post Crash vs. No Crash $$ ####################
-# plt.show()
+dt_BeliefsB2
+dt_PerAlloB2
+dt_EAB2

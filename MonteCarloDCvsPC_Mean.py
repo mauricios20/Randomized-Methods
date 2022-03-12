@@ -98,9 +98,10 @@ DC = Years[:Ylen]
 PC = Years[Ylen:]
 
 # Total number of observations only for demostration
-print(Ylen)
-print(DC)
-print(PC)
+# print(Ylen)
+# print(DC)
+# print(PC)
+
 # Create a data frame dictionary to store your data frames
 
 DataFrameDict = {elem: pd.DataFrame for elem in Subjects}
@@ -117,10 +118,10 @@ for key in DataFrameDict.keys():
     Tobs = Tobs.append(dt, ignore_index=True)
 
 Tobs.set_index(Subjects, inplace=True)
-Tobs.rename(columns={0: "TcObsB", 1: "TtObsB", 2: "TObsB",
-                    3: "TcObsPA", 4: "TtObsPA", 5: "TObsPA",
-                    6: "TcObsE", 7: "TtObsE", 8: "TObsE"})
-print(Tobs)
+Tobs.rename(columns={0: "YcObsB", 1: "YtObsB", 2: "TObsB",
+                    3: "YcObsPA", 4: "YtObsPA", 5: "TObsPA",
+                    6: "YcObsE", 7: "YtObsE", 8: "TObsE"})
+
 
 # #### Monte Carlo ########
 
@@ -129,7 +130,7 @@ PermuFrameDict = {elem: pd.DataFrame for elem in Subjects}
 
 for key in PermuFrameDict.keys():
     PermuFrameDict[key] = pd.DataFrame()
-    for __ in range(3):  # Doing 2 iterations.
+    for __ in range(5000):  # Doing 2 iterations.
         # Groups and positions will be assigned in order, so shuffle beforehand.
         random.shuffle(Years)
         print(Years)
@@ -144,13 +145,16 @@ for key in PermuFrameDict.keys():
         dtMC = pd.DataFrame(data=[resMC])
         PermuFrameDict[key] = PermuFrameDict[key].append(dtMC, ignore_index=True)
 
-print(PermuFrameDict[105]) # Change Subject ID to see other results
+print(PermuFrameDict[41])
+PermuFrameDict[105].rename(columns={0: "Y_{c}B", 1: "Y_{t}B", 2: "TB",
+                    3: "Y_{c}PA", 4: "Y_{t}PA", 5: "TPA",
+                    6: "Y_{c}E", 7: "Y_{t}E", 8: "TE"}) # Change Subject ID to see other results
 # Belief is 2, PA is 5, and EA is 8
 
 dt_Beliefs = result(2, 0.05)
 dt_PerAllo = result(5, 0.05)
 dt_EA = result(8, 0.05)
 
-print(dt_Beliefs)
-print(dt_PerAllo)
-print(dt_EA)
+dt_Beliefs
+dt_PerAllo
+dt_EA
