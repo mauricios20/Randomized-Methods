@@ -145,7 +145,7 @@ for key in PermuFrameDict.keys():
         dtMC = pd.DataFrame(data=[resMC])
         PermuFrameDict[key] = PermuFrameDict[key].append(dtMC, ignore_index=True)
 
-print(PermuFrameDict[41])
+print(PermuFrameDict[43])
 PermuFrameDict[105].rename(columns={0: "Y_{c}B", 1: "Y_{t}B", 2: "TB",
                     3: "Y_{c}PA", 4: "Y_{t}PA", 5: "TPA",
                     6: "Y_{c}E", 7: "Y_{t}E", 8: "TE"}) # Change Subject ID to see other results

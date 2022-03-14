@@ -94,8 +94,16 @@ print(dtf40.columns)
 # #  ################ $$ During Crash vs. Post Crash $$ ####################
 # Overall
 
-FEB0 = dtf40[dtf40['Year'] <= 20]
-PEB0 = dtf40[dtf40['Year'] >= 21]
+thresh_low = 4    # 1928
+thresh_high = 17  # 1941
+# mask = (DataFrameDict[key].Year >= thresh_low) & (DataFrameDict[key].Year <= thresh_high)
+mask = (dtf40.Year >= thresh_low) & (dtf40.Year <= thresh_high)
+
+FEB0 = dtf40[mask]
+PEB0 = dtf40[dtf40['Year'] >= 18]
+
+FEB0.head(17)
+PEB0.head(25)
 # #  ################ $$ During Crash vs. Post Crash $$ ####################
 # Per Subject
 Subjects = dtf40.Subject.unique()
@@ -119,9 +127,7 @@ for key in DataFrameDict.keys():
     DataFrameDict[key] = dtf40[dtf40['Subject'] == key]
     dtfFE = DataFrameDict[key][DataFrameDict[key].Year.isin(YearsFE)]
     dtfB1 = DataFrameDict[key][DataFrameDict[key].Year.isin(B1)]
-    # thresh_low = 11
-    # thresh_high = 20
-    # mask = (DataFrameDict[key].Year >= thresh_low) & (DataFrameDict[key].Year <= thresh_high)
+
     dtfB2 = DataFrameDict[key][DataFrameDict[key].Year.isin(B2)]
     res = calc_diff_mean(dtfFE, dtfB1, dtfB2, 'Belief', 'PerAllo', 'EAB', 2)
     dt = pd.DataFrame(data=[res])

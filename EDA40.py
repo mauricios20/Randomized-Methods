@@ -162,7 +162,7 @@ plt.ylabel('(%) Return')
 
 (plt.xticks(range(dfOb['Actual Year'].min(),
                   dfOb['Actual Year'].max()+1, 1), rotation=50))
-
+plt.show()
 # #  ################ $$ Per Subject 40 Cohort $$ ####################
 
 dtf40, dtf40ST, dtf40LT, stats40 = split('40PerSubjectData.csv',
