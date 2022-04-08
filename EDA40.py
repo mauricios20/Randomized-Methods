@@ -162,7 +162,7 @@ plt.ylabel('(%) Return')
 
 (plt.xticks(range(dfOb['Actual Year'].min(),
                   dfOb['Actual Year'].max()+1, 1), rotation=50))
-plt.show()
+
 # #  ################ $$ Per Subject 40 Cohort $$ ####################
 
 dtf40, dtf40ST, dtf40LT, stats40 = split('40PerSubjectData.csv',
@@ -240,20 +240,26 @@ vioandbox(fig2, dtf40, 'Treatment (D)', 'Belief', 0.2)
 
 Subjects = dtf40.Subject.unique()
 Years = dtf40.Year.unique()
-print(Subjects)
-Group1 = Subjects[:19]
-Group2 = Subjects[19:]
 
-print(Group1)
-print(Group2)
+Group1 = Subjects[:10]
+# Group1
+Group2 = Subjects[10:20]
+# Group2
+Group3 = Subjects[20:30]
+# Group3
+Group4 = Subjects[30:]
+
+
 dtG1 = dtf40.loc[dtf40.Subject.isin(Group1)]
 dtG2 = dtf40.loc[dtf40.Subject.isin(Group2)]
+dtG3 = dtf40.loc[dtf40.Subject.isin(Group3)]
+dtG4 = dtf40.loc[dtf40.Subject.isin(Group4)]
 
 # Per Subject in Group 1
 min = dtG1['Belief'].min()-0.1
 max = dtG1['Belief'].max()+0.1
 
-z = sns.FacetGrid(dtG1, col='Subject', col_wrap=5,
+z = sns.FacetGrid(dtG1, col='Subject', col_wrap=3,
                   height=3, ylim=(min, max), aspect=1.4)
 (z.map_dataframe(facetgrid_two_axes, dual_axis=True)
     .set_axis_labels("Period", "Belief"))
@@ -267,12 +273,12 @@ z.map(plt.fill_betweenx, y=[-1, 1], x1=27, x2=29, alpha=0.5, color='silver')
 z.map(plt.fill_betweenx, y=[-1, 1], x1=30, x2=33, alpha=0.5, color='crimson')
 z.map(plt.fill_betweenx, y=[-1, 1], x1=34, x2=36, alpha=0.5, color='crimson')
 z.map(plt.fill_betweenx, y=[-1, 1], x1=37, x2=38, alpha=0.5, color='silver')
-
+# z.fig.suptitle('Group 1')
 # Per Subject in Group 2
 min = dtG2['Belief'].min()-0.1
 max = dtG2['Belief'].max()+0.1
 
-z = sns.FacetGrid(dtG2, col='Subject', col_wrap=5,
+z = sns.FacetGrid(dtG2, col='Subject', col_wrap=3,
                   height=3, ylim=(min, max), aspect=1.4)
 (z.map_dataframe(facetgrid_two_axes, dual_axis=True)
     .set_axis_labels("Period", "Belief"))
@@ -286,4 +292,46 @@ z.map(plt.fill_betweenx, y=[-1, 1], x1=27, x2=29, alpha=0.5, color='silver')
 z.map(plt.fill_betweenx, y=[-1, 1], x1=30, x2=33, alpha=0.5, color='crimson')
 z.map(plt.fill_betweenx, y=[-1, 1], x1=34, x2=36, alpha=0.5, color='crimson')
 z.map(plt.fill_betweenx, y=[-1, 1], x1=37, x2=38, alpha=0.5, color='silver')
+# z.fig.suptitle('Group 2')
+
+# Per Subject in Group 3
+min = dtG3['Belief'].min()-0.1
+max = dtG3['Belief'].max()+0.1
+
+z = sns.FacetGrid(dtG3, col='Subject', col_wrap=3,
+                  height=3, ylim=(min, max), aspect=1.4)
+(z.map_dataframe(facetgrid_two_axes, dual_axis=True)
+    .set_axis_labels("Period", "Belief"))
+z.map(plt.fill_betweenx, y=[-1, 1], x1=1, x2=2, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=4, x2=7, alpha=0.5, color='red')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=9, x2=10, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=11, x2=13, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=14, x2=17, alpha=0.5, color='silver')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=21, x2=22, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=27, x2=29, alpha=0.5, color='silver')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=30, x2=33, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=34, x2=36, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=37, x2=38, alpha=0.5, color='silver')
+# z.fig.suptitle('Group 3')
+
+# Per Subject in Group 4
+min = dtG4['Belief'].min()-0.1
+max = dtG4['Belief'].max()+0.1
+
+z = sns.FacetGrid(dtG4, col='Subject', col_wrap=3,
+                  height=3, ylim=(min, max), aspect=1.4)
+(z.map_dataframe(facetgrid_two_axes, dual_axis=True)
+    .set_axis_labels("Period", "Belief"))
+z.map(plt.fill_betweenx, y=[-1, 1], x1=1, x2=2, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=4, x2=7, alpha=0.5, color='red')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=9, x2=10, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=11, x2=13, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=14, x2=17, alpha=0.5, color='silver')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=21, x2=22, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=27, x2=29, alpha=0.5, color='silver')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=30, x2=33, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=34, x2=36, alpha=0.5, color='crimson')
+z.map(plt.fill_betweenx, y=[-1, 1], x1=37, x2=38, alpha=0.5, color='silver')
+# z.fig.suptitle('Group 4')
+
 plt.show()

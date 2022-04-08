@@ -47,6 +47,8 @@ def get_data(data, y, x):
         res = oneway_ANOVA(y, x)
         if res[4] == 8.98846567431158e+307:
             res[4] = 'NaN'
+            res[5] = 'NaN'
+            res[6] = 'Fail to reject Ho'
         else:
             res[4]
         dt = pd.DataFrame(data=[res])
@@ -91,8 +93,12 @@ Anova_Belief = get_data(dtf, 'Belief', 'TreatmentC')
 Anova_Allocation = get_data(dtf, 'PerAllo', 'TreatmentC')
 Anova_Earnings = get_data(dtf, 'EAB', 'TreatmentC')
 
+Anova_Belief
+Anova_Allocation
+Anova_Earnings
+
 # #  ################ $$ Per Subject Analysis block 0 and 1 $$ ################
-blocks = [0, 1]
+blocks = [0, 2]
 dtf2 = dtf.loc[dtf['Treatment (C)'].isin(blocks)]
 
 # Select data frame to be analyzed
@@ -101,6 +107,9 @@ Anova_Belief2 = get_data(dtf2, 'Belief', 'TreatmentC')
 Anova_Allocation2 = get_data(dtf2, 'PerAllo', 'TreatmentC')
 Anova_Earnings2 = get_data(dtf2, 'EAB', 'TreatmentC')
 
+Anova_Belief2
+Anova_Allocation2
+Anova_Earnings2
 
 # #  ################ $$ Test $$ ####################
 # stata.pdataframe_to_data(dtf, force=True)
