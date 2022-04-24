@@ -19,14 +19,14 @@ os.chdir(path)
 
 def calc_diff(fixed, b1, b2, x, n):
     list = []
-    meanxb1 = round(b1[x].skew(), n)
-    meanxb2 = round(b2[x].skew(), n)
-    meanxf = round(fixed[x].skew(), n)
-    Txb1 = round((abs(meanxf)-abs(meanxb1)), n)
-    Txb2 = round((abs(meanxf)-abs(meanxb2)), n)
-    Txb12 = round((abs(meanxb1)-abs(meanxb2)), n)
+    meanxb1 = round(b1[x].std(), n)
+    meanxb2 = round(b2[x].std(), n)
+    meanxf = round(fixed[x].std(), n)
+    Txb1 = round((meanxf-meanxb1), n)
+    Txb2 = round((meanxf-meanxb2), n)
+    Txb12 = round((meanxb1-meanxb2), n)
 
-    list.extend((meanxf, meanxb1, meanxb2, abs(Txb1), abs(Txb2), abs(Txb12)))
+    list.extend((meanxf, meanxb1, meanxb2, Txb1, Txb2, Txb12))
     return list
 
 # Split
