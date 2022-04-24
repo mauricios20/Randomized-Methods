@@ -40,40 +40,57 @@ for key in DataFrameDict.keys():
 
 
 # Scatter Plot Belief vs Allocation
-Group1 = Subjects[:10]
+Group1 = Subjects[:6]
 # Group
-Group2 = Subjects[10:20]
+Group2 = Subjects[6:12]
 # Group2
-Group3 = Subjects[20:30]
+Group3 = Subjects[12:18]
 # Group3
-Group4 = Subjects[30:]
+Group4 = Subjects[18:24]
+Group5 = Subjects[24:30]
+Group6 = Subjects[30:]
+
 
 dtG1 = dtf.loc[dtf.Subject.isin(Group1)]
 dtG2 = dtf.loc[dtf.Subject.isin(Group2)]
 dtG3 = dtf.loc[dtf.Subject.isin(Group3)]
 dtG4 = dtf.loc[dtf.Subject.isin(Group4)]
+dtG5 = dtf.loc[dtf.Subject.isin(Group5)]
+dtG6 = dtf.loc[dtf.Subject.isin(Group6)]
+
 
 # Group 1
-k = sns.FacetGrid(dtG1, col="Subject", col_wrap=5, height=3, aspect=1.4)
+k = sns.FacetGrid(dtG1, col="Subject", col_wrap=2, height=3, aspect=1.4)
 k.map_dataframe(sns.scatterplot, x='PerAllo', y='Belief', hue='During/Post').set_axis_labels(
     "(%) Allocation", "Belief")
 
 # Group 2
-k = sns.FacetGrid(dtG2, col="Subject", col_wrap=5, height=3, aspect=1.4)
+k = sns.FacetGrid(dtG2, col="Subject", col_wrap=2, height=3, aspect=1.4)
 k.map_dataframe(sns.scatterplot, x='PerAllo', y='Belief', hue='During/Post').set_axis_labels(
     "(%) Allocation", "Belief")
 
 # Group 3
-k = sns.FacetGrid(dtG3, col="Subject", col_wrap=5, height=3, aspect=1.4)
+k = sns.FacetGrid(dtG3, col="Subject", col_wrap=2, height=3, aspect=1.4)
 k.map_dataframe(sns.scatterplot, x='PerAllo', y='Belief', hue='During/Post').set_axis_labels(
     "(%) Allocation", "Belief")
 
 # Group 4
-k = sns.FacetGrid(dtG4, col="Subject", col_wrap=5,
+k = sns.FacetGrid(dtG4, col="Subject", col_wrap=2,
                   height=3, aspect=1.4)
 k.map_dataframe(sns.scatterplot, x='PerAllo', y='Belief', hue='During/Post').set_axis_labels(
     "(%) Allocation", "Belief")
 
+#Group 5
+k = sns.FacetGrid(dtG5, col="Subject", col_wrap=2,
+                  height=3, aspect=1.4)
+k.map_dataframe(sns.scatterplot, x='PerAllo', y='Belief', hue='During/Post').set_axis_labels(
+    "(%) Allocation", "Belief")
+
+#Group 6
+k = sns.FacetGrid(dtG6, col="Subject", col_wrap=2,
+                  height=3, aspect=1.4)
+k.map_dataframe(sns.scatterplot, x='PerAllo', y='Belief', hue='During/Post').set_axis_labels(
+    "(%) Allocation", "Belief")
 
 # Split Individuals for PercentChange Visualization
 OverallData = pd.concat(PercentChange).reset_index()
@@ -82,27 +99,41 @@ dtG1 = OverallData.loc[OverallData.Subject.isin(Group1)]
 dtG2 = OverallData.loc[OverallData.Subject.isin(Group2)]
 dtG3 = OverallData.loc[OverallData.Subject.isin(Group3)]
 dtG4 = OverallData.loc[OverallData.Subject.isin(Group4)]
+dtG5 = OverallData.loc[OverallData.Subject.isin(Group5)]
+dtG6 = OverallData.loc[OverallData.Subject.isin(Group6)]
 
 # Group 1
-g = sns.FacetGrid(dtG1, col="Subject", col_wrap=5, height=3, aspect=1.4)
+g = sns.FacetGrid(dtG1, col="Subject", col_wrap=2, height=3, aspect=1.4)
 (g.map_dataframe(comparison).set_axis_labels("Period", "(%) Change"))
 g.map(plt.axhline, y=2, color='r', linestyle='-')
 g.map(plt.axhline, y=-2, color='r', linestyle='-')
 
 # Group 2
-g = sns.FacetGrid(dtG2, col="Subject", col_wrap=5, height=3, aspect=1.4)
+g = sns.FacetGrid(dtG2, col="Subject", col_wrap=2, height=3, aspect=1.4)
 g.map_dataframe(comparison).set_axis_labels("Period", "(%) Change")
 g.map(plt.axhline, y=2, color='r', linestyle='-')
 g.map(plt.axhline, y=-2, color='r', linestyle='-')
 
 # Group 3
-g = sns.FacetGrid(dtG3, col="Subject", col_wrap=5, height=3, aspect=1.4)
+g = sns.FacetGrid(dtG3, col="Subject", col_wrap=2, height=3, aspect=1.4)
 g.map_dataframe(comparison).set_axis_labels("Period", "(%) Change")
 g.map(plt.axhline, y=2, color='r', linestyle='-')
 g.map(plt.axhline, y=-2, color='r', linestyle='-')
 
 # Group 4
-g = sns.FacetGrid(dtG4, col="Subject", col_wrap=5, height=3, aspect=1.4)
+g = sns.FacetGrid(dtG4, col="Subject", col_wrap=2, height=3, aspect=1.4)
+g.map_dataframe(comparison).set_axis_labels("Period", "(%) Change")
+g.map(plt.axhline, y=2, color='r', linestyle='-')
+g.map(plt.axhline, y=-2, color='r', linestyle='-')
+
+# Group 5
+g = sns.FacetGrid(dtG5, col="Subject", col_wrap=2, height=3, aspect=1.4)
+g.map_dataframe(comparison).set_axis_labels("Period", "(%) Change")
+g.map(plt.axhline, y=2, color='r', linestyle='-')
+g.map(plt.axhline, y=-2, color='r', linestyle='-')
+
+# Group 6
+g = sns.FacetGrid(dtG6, col="Subject", col_wrap=2, height=3, aspect=1.4)
 g.map_dataframe(comparison).set_axis_labels("Period", "(%) Change")
 g.map(plt.axhline, y=2, color='r', linestyle='-')
 g.map(plt.axhline, y=-2, color='r', linestyle='-')
@@ -113,33 +144,43 @@ exclude = [118, 104, 41, 43, 60, 47, 50, 58, 52, 113, 117]
 kerneldtf = dtf.loc[~dtf.Subject.isin(exclude)]
 Subjects2 = kerneldtf.Subject.unique()
 
-Group1 = Subjects2[:9]
+Group1 = Subjects2[:6]
 Group1
-Group2 = Subjects2[9:18]
+Group2 = Subjects2[6:12]
 Group2
-Group3 = Subjects2[18:]
+Group3 = Subjects2[12:18]
 Group3
+Group4 = Subjects2[18:24]
+Group4
+Group5 = Subjects2[24:]
 
 
 dtG1 = kerneldtf.loc[kerneldtf.Subject.isin(Group1)]
 dtG2 = kerneldtf.loc[kerneldtf.Subject.isin(Group2)]
 dtG3 = kerneldtf.loc[kerneldtf.Subject.isin(Group3)]
+dtG4 = kerneldtf.loc[kerneldtf.Subject.isin(Group4)]
+dtG5 = kerneldtf.loc[kerneldtf.Subject.isin(Group5)]
 
+z = sns.FacetGrid(dtG1, col="Subject", col_wrap=2, height=3, aspect=1.4)
+z.map_dataframe(sns.kdeplot, x='Belief', bw_adjust=0.7,
+                hue='During/Post', fill=True)
 
-z = sns.FacetGrid(dtG1, col="Subject", col_wrap=3, height=3, aspect=1.4)
+z = sns.FacetGrid(dtG2, col="Subject", col_wrap=2, height=3, aspect=1.4)
 z.map_dataframe(sns.kdeplot, x='Belief', bw_adjust=0.7,
                 hue='During/Post', fill=True)
 
 
-z = sns.FacetGrid(dtG2, col="Subject", col_wrap=3, height=3, aspect=1.4)
+z = sns.FacetGrid(dtG3, col="Subject", col_wrap=2, height=3, aspect=1.4)
 z.map_dataframe(sns.kdeplot, x='Belief', bw_adjust=0.7,
                 hue='During/Post', fill=True)
 
-
-z = sns.FacetGrid(dtG3, col="Subject", col_wrap=3, height=3, aspect=1.4)
+z = sns.FacetGrid(dtG4, col="Subject", col_wrap=2, height=3, aspect=1.4)
 z.map_dataframe(sns.kdeplot, x='Belief', bw_adjust=0.7,
                 hue='During/Post', fill=True)
 
+z = sns.FacetGrid(dtG5, col="Subject", col_wrap=2, height=3, aspect=1.4)
+z.map_dataframe(sns.kdeplot, x='Belief', bw_adjust=0.7,
+                hue='During/Post', fill=True)
 plt.show()
 
 # Just to see what color is During and Post

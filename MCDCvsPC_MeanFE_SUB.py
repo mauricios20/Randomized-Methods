@@ -119,12 +119,12 @@ for key in DataFrameDict.keys():
     dtfB1 = DataFrameDict[key][DataFrameDict[key].Year.isin(B1)]
 
     dtfB2 = DataFrameDict[key][DataFrameDict[key].Year.isin(B2)]
-    res = calc_diff_mean(dtfFE, dtfB1, dtfB2, 'Belief', 2)
+    res = calc_diff_mean(dtfFE, dtfB1, dtfB2, 'Belief', 3)
     dt = pd.DataFrame(data=[res])
     Tobs = Tobs.append(dt, ignore_index=True)
 
 Tobs.set_index(Subjects, inplace=True)
-print(Tobs)
+print(Tobs.to_latex(index=True))
 Tobs.rename(columns={0: "YFE", 1: "YB1", 2: "YB2",
                     3: "TB1", 4: "TB2", 5: "TB12"})
 
@@ -145,17 +145,15 @@ for key in PermuFrameDict.keys():
         B2 = Years[Ylen:]
         dtfB1 = DataFrameDict[key].loc[DataFrameDict[key].Year.isin(B1)]
         dtfB2 = DataFrameDict[key].loc[DataFrameDict[key].Year.isin(B2)]
-        resMC = calc_diff_mean(dtfFE, dtfB2, dtfB1, 'Belief', 2)
+        resMC = calc_diff_mean(dtfFE, dtfB2, dtfB1, 'Belief', 3)
         dtMC = pd.DataFrame(data=[resMC])
         PermuFrameDict[key] = PermuFrameDict[key].append(dtMC, ignore_index=True)
-
-
 
 # Belief is 2, PA is 5, and EA is 8
 dt_BeliefsB1 = result(3, 0.05)
 dt_BeliefsB2 = result(4, 0.05)
 dt_BeliefsB12 = result(5, 0.05)
 
-dt_BeliefsB1
-dt_BeliefsB2
-dt_BeliefsB12
+print(dt_BeliefsB1.to_latex(index=False))
+print(dt_BeliefsB2.to_latex(index=False))
+print(dt_BeliefsB12.to_latex(index=False))

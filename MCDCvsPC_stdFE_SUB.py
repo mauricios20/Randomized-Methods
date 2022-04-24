@@ -14,26 +14,19 @@ os.chdir(path)
 # Calculate T Statistic
 # $ Add more Stats as needed $
 
+# For MC Calculation
 
-def calc_diff(dtfCG, dtfTG, x, n):
+
+def calc_diff(fixed, b1, b2, x, n):
     list = []
-    meanT = round(dtfTG[x].mean(), n)
-    meanC = round(dtfCG[x].mean(), n)
-    Tx = round((meanT - meanC), n)
+    meanxb1 = round(b1[x].std(), n)
+    meanxb2 = round(b2[x].std(), n)
+    meanxf = round(fixed[x].std(), n)
+    Txb1 = round((meanxf-meanxb1), n)
+    Txb2 = round((meanxf-meanxb2), n)
+    Txb12 = round((meanxb1-meanxb2), n)
 
-    stdT = round(dtfTG[x].std(), n)
-    stdC = round(dtfCG[x].std(), n)
-    Ty = round((stdT - stdC), n)
-
-    skewT = round(dtfTG[x].skew(), n)
-    skewC = round(dtfCG[x].skew(), n)
-    Tz = round((abs(skewT) - abs(skewC)), n)
-
-    kurtT = round(dtfTG[x].kurtosis(), n)
-    kurtC = round(dtfCG[x].kurtosis(), n)
-    Tk = round((abs(kurtT) - abs(kurtC)), n)
-    list.extend((meanC, meanT, Tx, stdC, stdT, Ty,
-                skewC, skewT, abs(Tz), kurtC, kurtT, abs(Tk)))
+    list.extend((meanxf, meanxb1, meanxb2, Txb1, Txb2, Txb12))
     return list
 
 # Split
@@ -59,16 +52,14 @@ def result(x, a):
 
     final_results = pd.DataFrame()
     for i in Subjects:
-        # Observed result of experiment difference kurtosis
-        obs = abs(Tobs.loc[i, [x]])
+        obs = abs(Tobs.loc[i, [x]])  # Observed result of experiment difference kurtosis
         # to get numbers > k
         count = sum(t >= obs for t in abs(PermuFrameDict[i][x]))
 
-        p_value = count / len(PermuFrameDict[i])
-        corrected = (count + 1) / (len(PermuFrameDict[i]) + 1)
+        p_value = count/len(PermuFrameDict[i])
+        corrected = (count+1)/(len(PermuFrameDict[i])+1)
 
-        dt = pd.DataFrame(data={'Subject': i, 'n': len(
-            PermuFrameDict[i]), 'r': count, 'p_values': p_value, 'Correction': round(corrected, 2)})
+        dt = pd.DataFrame(data={'Subject': i, 'n': len(PermuFrameDict[i]), 'k': count, 'p_values': p_value, 'Correction': round(corrected, 2)})
         final_results = final_results.append(dt, ignore_index=True)
 
     hypo = []
@@ -88,47 +79,55 @@ def result(x, a):
 dtf40, dtf40ST, dtf40LT = split('40PerSubjectData.csv',
                                 'Belief', 'Treatment (D)', 0, 1)
 
-
+print(dtf40.columns)
 # #  ################ $$ During Crash vs. Post Crash $$ ####################
 # Overall
 
-dtf40DC = dtf40[dtf40['Year'] <= 20]
-dtf40PC = dtf40[dtf40['Year'] >= 21]
+thresh_low = 5    # 1929
+thresh_high = 16  # 1940
+# mask = (DataFrameDict[key].Year >= thresh_low) & (DataFrameDict[key].Year <= thresh_high)
+mask = (dtf40.Year >= thresh_low) & (dtf40.Year <= thresh_high)
 
-res = calc_diff(dtf40PC, dtf40DC, 'Belief', 3)
-res
+FEB0 = dtf40[mask]
+PEB0 = dtf40[dtf40['Year'] >= 17]
 
+FEB0.head(17)
+PEB0.head(25)
 # #  ################ $$ During Crash vs. Post Crash $$ ####################
 # Per Subject
 Subjects = dtf40.Subject.unique()
-Years = dtf40.Year.unique()
-Ylen = int(len(Years) / 2)
-DC = Years[:Ylen]
-PC = Years[Ylen:]
+YearsFE = FEB0.Year.unique()
+Years = PEB0.Year.unique()
+Ylen = int(len(Years)/2)
+B1 = Years[:Ylen]
+B2 = Years[Ylen:]
 
-# Total number of observations only for demostration
-# print(Ylen)
-# print(DC)
-# print(PC)
-
+# print(len(Years))
+# print(YearsFE)
+# print(B1)
+# print(B2)
 # Create a data frame dictionary to store your data frames
 
 DataFrameDict = {elem: pd.DataFrame for elem in Subjects}
-# print(len(DataFrameDict))  # Make sure it equals the same number of subjects
-# print(DataFrameDict.keys())  # Look at the keys, Keys = Subject ID
+print(len(DataFrameDict))  # Make sure it equals the same number of subjects
+print(DataFrameDict.keys()) # Look at the keys, Keys = Subject ID
 
 Tobs = pd.DataFrame()
 for key in DataFrameDict.keys():
     DataFrameDict[key] = dtf40[dtf40['Subject'] == key]
-    dtfDC = DataFrameDict[key][DataFrameDict[key].Year <= 20]
-    dtfPC = DataFrameDict[key][DataFrameDict[key].Year >= 21]
-    res = calc_diff(dtfPC, dtfDC, 'Belief', 3)
+    dtfFE = DataFrameDict[key][DataFrameDict[key].Year.isin(YearsFE)]
+    dtfB1 = DataFrameDict[key][DataFrameDict[key].Year.isin(B1)]
+
+    dtfB2 = DataFrameDict[key][DataFrameDict[key].Year.isin(B2)]
+    res = calc_diff(dtfFE, dtfB1, dtfB2, 'Belief', 3)
     dt = pd.DataFrame(data=[res])
     Tobs = Tobs.append(dt, ignore_index=True)
 
 Tobs.set_index(Subjects, inplace=True)
-
 print(Tobs.to_latex(index=True))
+Tobs.rename(columns={0: "YFE", 1: "YB1", 2: "YB2",
+                    3: "TB1", 4: "TB2", 5: "TB12"})
+
 
 # #### Monte Carlo ########
 
@@ -137,27 +136,26 @@ PermuFrameDict = {elem: pd.DataFrame for elem in Subjects}
 
 for key in PermuFrameDict.keys():
     PermuFrameDict[key] = pd.DataFrame()
+    dtfFE = DataFrameDict[key][DataFrameDict[key].Year.isin(YearsFE)]
     for __ in range(5000):  # Doing 2 iterations.
         # Groups and positions will be assigned in order, so shuffle beforehand.
         random.shuffle(Years)
-        DC = Years[:Ylen]
-        PC = Years[Ylen:]
-        dtfCG = DataFrameDict[key].loc[DataFrameDict[key].Year.isin(PC)]
-        dtfTG = DataFrameDict[key].loc[DataFrameDict[key].Year.isin(DC)]
-        resMC = calc_diff(dtfCG, dtfTG, 'Belief', 3)
+        Years
+        B1 = Years[:Ylen]
+        B2 = Years[Ylen:]
+        dtfB1 = DataFrameDict[key].loc[DataFrameDict[key].Year.isin(B1)]
+        dtfB2 = DataFrameDict[key].loc[DataFrameDict[key].Year.isin(B2)]
+        resMC = calc_diff(dtfFE, dtfB2, dtfB1, 'Belief', 3)
         dtMC = pd.DataFrame(data=[resMC])
-        PermuFrameDict[key] = PermuFrameDict[key].append(
-            dtMC, ignore_index=True)
+        PermuFrameDict[key] = PermuFrameDict[key].append(dtMC, ignore_index=True)
 
- # Change Subject ID to see other results
- PermuFrameDict[42]
+
+
 # Belief is 2, PA is 5, and EA is 8
+dt_BeliefsB1 = result(3, 0.05)
+dt_BeliefsB2 = result(4, 0.05)
+dt_BeliefsB12 = result(5, 0.05)
 
-dt_mean = result(2, 0.05)
-print(dt_mean.to_latex(index=False))
-dt_std = result(5, 0.05)
-print(dt_std.to_latex(index=False))
-dt_skew = result(8, 0.05)
-print(dt_skew.to_latex(index=False))
-dt_kurt = result(11, 0.05)
-print(dt_kurt.to_latex(index=False))
+dt_BeliefsB1
+dt_BeliefsB2
+dt_BeliefsB12
