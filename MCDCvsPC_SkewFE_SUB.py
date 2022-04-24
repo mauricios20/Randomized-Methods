@@ -65,9 +65,9 @@ def result(x, a):
     hypo = []
     for p in final_results['p_values']:
         if p < a:
-            hypo.append('Reject Ho')
+            hypo.append('Reject')
         else:
-            hypo.append('Fail to reject Ho')
+            hypo.append('Fail to Reject')
 
     final_results['Hypothesis'] = hypo
     return final_results
