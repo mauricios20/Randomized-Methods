@@ -124,6 +124,7 @@ for key in DataFrameDict.keys():
     Tobs = Tobs.append(dt, ignore_index=True)
 
 Tobs.set_index(Subjects, inplace=True)
+Tobs
 print(Tobs.to_latex(index=True))
 Tobs.rename(columns={0: "YFE", 1: "YB1", 2: "YB2",
                     3: "TB1", 4: "TB2", 5: "TB12"})
@@ -154,6 +155,6 @@ dt_BeliefsB1 = result(3, 0.05)
 dt_BeliefsB2 = result(4, 0.05)
 dt_BeliefsB12 = result(5, 0.05)
 
-print(dt_BeliefsB1.to_latex(index=False))
-print(dt_BeliefsB2.to_latex(index=False))
-print(dt_BeliefsB12.to_latex(index=False))
+dt_BeliefsB1
+dt_BeliefsB2
+dt_BeliefsB12

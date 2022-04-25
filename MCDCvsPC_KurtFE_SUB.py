@@ -124,7 +124,7 @@ for key in DataFrameDict.keys():
     Tobs = Tobs.append(dt, ignore_index=True)
 
 Tobs.set_index(Subjects, inplace=True)
-print(Tobs.to_latex(index=True))
+Tobs
 Tobs.rename(columns={0: "YFE", 1: "YB1", 2: "YB2",
                     3: "TB1", 4: "TB2", 5: "TB12"})
 
@@ -154,8 +154,8 @@ for key in PermuFrameDict.keys():
 # Belief is 2, PA is 5, and EA is 8
 dt_BeliefsB1 = result(3, 0.05)
 dt_BeliefsB2 = result(4, 0.05)
-dt_BeliefsB12 = result(5, 0.05)
+# dt_BeliefsB12 = result(5, 0.05)
 
 dt_BeliefsB1
 dt_BeliefsB2
-dt_BeliefsB12
+# dt_BeliefsB12
