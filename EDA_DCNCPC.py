@@ -128,6 +128,8 @@ axes[2].legend(['PC'])
 for i in range(0, 3):
     axes[i].grid(True)
 
+
+plt.show()
 fig5, axes = plt.subplots(1, 3, sharey=True)
 regplots(fig5, dtf40DC, dtf20, dtf40PC, 'Objective', 'Belief')
 axes[1].set(ylabel=None)

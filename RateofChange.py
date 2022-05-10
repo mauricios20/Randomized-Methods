@@ -91,7 +91,7 @@ k = sns.FacetGrid(dtG6, col="Subject", col_wrap=2,
                   height=3, aspect=1.4)
 k.map_dataframe(sns.scatterplot, x='PerAllo', y='Belief', hue='During/Post').set_axis_labels(
     "(%) Allocation", "Belief")
-
+plt.show()
 # Split Individuals for PercentChange Visualization
 OverallData = pd.concat(PercentChange).reset_index()
 

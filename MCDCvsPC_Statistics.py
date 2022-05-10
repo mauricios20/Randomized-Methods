@@ -74,9 +74,9 @@ def result(x, a):
     hypo = []
     for p in final_results['p_values']:
         if p < a:
-            hypo.append('Reject Ho')
+            hypo.append('Reject')
         else:
-            hypo.append('Fail to reject Ho')
+            hypo.append('Fail to Reject')
 
     final_results['Hypothesis'] = hypo
     return final_results
@@ -149,15 +149,19 @@ for key in PermuFrameDict.keys():
         PermuFrameDict[key] = PermuFrameDict[key].append(
             dtMC, ignore_index=True)
 
- # Change Subject ID to see other results
- PermuFrameDict[42]
+# Change Subject ID to see other results
+
 # Belief is 2, PA is 5, and EA is 8
 
 dt_mean = result(2, 0.05)
-print(dt_mean.to_latex(index=False))
+dt_mean
+# print(dt_mean.to_latex(index=False))
 dt_std = result(5, 0.05)
-print(dt_std.to_latex(index=False))
+dt_std
+# print(dt_std.to_latex(index=False))
 dt_skew = result(8, 0.05)
-print(dt_skew.to_latex(index=False))
+dt_skew
+# print(dt_skew.to_latex(index=False))
 dt_kurt = result(11, 0.05)
-print(dt_kurt.to_latex(index=False))
+dt_kurt
+# print(dt_kurt.to_latex(index=False))
