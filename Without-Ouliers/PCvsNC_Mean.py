@@ -17,8 +17,8 @@ os.chdir(path)
 
 def calc_diff(dtfCG, dtfTG, x, n):
     list = []
-    Td = round(dtfTG[x].skew(), n)
-    Cd = round(dtfCG[x].skew(), n)
+    Td = round(dtfTG[x].mean(), n)
+    Cd = round(dtfCG[x].mean(), n)
     T = round((Td - Cd), n)
     list.extend((Td, Cd, T))
     return list
@@ -54,10 +54,10 @@ def MC(Subjects, GlenC, nper, dtf):
     a = 0.05
     if p_value < a:
         dt = pd.DataFrame(data={'k': nper, 'r': count, 'p_values': round(p_value, 3), 'Correction': round(
-            corrected, 3), 'Hypothesis': 'Reject'}, index=[0])
+            corrected, 3), 'Ho': 'Reject Ho'}, index=[0])
     else:
         dt = pd.DataFrame(data={'k': nper, 'r': count, 'p_values': round(p_value, 3), 'Correction': round(
-            corrected, 3), 'Hypothesis': 'Fail to Reject'}, index=[0])
+            corrected, 3), 'Ho': 'Fail to Reject'}, index=[0])
 
     return permu, dt
 # Split Data Frame
@@ -100,6 +100,29 @@ def MCfig(figu, dtf, dtf2, dtf3, dtf4, dtf5, x, bw):
                                             '5,000', '7,500', '10,000'])
 
 
+def remove_outliers(data, x):
+    # Define Quartiles
+    Q1 = data[x].quantile(0.25)
+    Q3 = data[x].quantile(0.75)
+    IQR = Q3 - Q1
+
+    # Old Shape
+    print("Old Shape", data.shape)
+    upper = Q3 + 1.5 * IQR
+    lower = Q1 - 1.5 * IQR
+    print("Upper Bound:", upper)
+    OutlierUp = data.index[data[x] >= upper].tolist()
+    print(OutlierUp)
+
+    print("Lower Bound:", lower)
+    OutlierLow = data.index[data[x] <= lower].tolist()
+    print(OutlierLow)
+
+    # Removing Outliers
+    dtf = data.drop(OutlierUp, axis=0)
+    dtfNO = dtf.drop(OutlierLow, axis=0)
+    print("New Shape", dtfNO.shape)
+    return dtfNO
 #############################################################################
 # # ################ $$$ Monte Carlo $$$ ######################
 # Load the Data
@@ -114,20 +137,23 @@ dtf20, dtf20ST, dtf20LT = split('20PerSubjectData.csv',
 # # ############### $$ Post Crash vs. No Crash $$ ####################
 
 dtf40PC = dtf40[dtf40['Year'] >= 21]
-res0 = calc_diff(dtf20, dtf40PC, 'Belief', 3)
-dtfall2 = dtf20.append(dtf40PC, sort=False)
-Subjects = dtfall2.Subject.unique()
-GlenC = len(dtf20.Subject.unique())
+dtf_PC = remove_outliers(dtf40PC, 'Belief')
+dtf_NC = remove_outliers(dtf20, 'Belief')
+
+res0 = calc_diff(dtf_NC, dtf_PC, 'Belief', 3)
+dtfall = dtf_NC.append(dtf_PC, sort=False)
+Subjects = dtfall.Subject.unique()
+GlenC = len(dtf_NC.Subject.unique())
 print(res0)
 
 # Run Multiple Permutations
 random.seed(180)
 obs = abs(res0[2])
-permu1, dt1 = MC(Subjects, GlenC, 1000, dtfall2)
-permu2, dt2 = MC(Subjects, GlenC, 2500, dtfall2)
-permu3, dt3 = MC(Subjects, GlenC, 5000, dtfall2)
-permu4, dt4 = MC(Subjects, GlenC, 7500, dtfall2)
-permu5, dt5 = MC(Subjects, GlenC, 10000, dtfall2)
+permu1, dt1 = MC(Subjects, GlenC, 1000, dtfall)
+permu2, dt2 = MC(Subjects, GlenC, 2500, dtfall)
+permu3, dt3 = MC(Subjects, GlenC, 5000, dtfall)
+permu4, dt4 = MC(Subjects, GlenC, 7500, dtfall)
+permu5, dt5 = MC(Subjects, GlenC, 10000, dtfall)
 
 # print(permu1.head(3).to_latex(index=True))
 print(permu3.head(3).to_latex(index=True))
@@ -139,10 +165,11 @@ print(final_dtf.to_latex(index=False))
 # Plot kernel densities of each permuatation
 fig1, axes = plt.subplots()
 MCfig(fig1, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
-fig1.axes[0].set_xlabel('Kurtosis Difference')
+fig1.axes[0].set_xlabel('Mean Difference')
 fig1.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
 fig1.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
-fig1.axes[0].text(4, 0.10, str(obs), rotation=90, verticalalignment='center')
-fig1.axes[0].text(-4.6, 0.10, str(-obs), rotation=90,
-                  verticalalignment='center')
+fig1.axes[0].text(.006, 15, str(obs), rotation=90,
+                  verticalalignment='center', fontweight='bold')
+fig1.axes[0].text(-.007, 15, str(-obs), rotation=90,
+                  verticalalignment='center', fontweight='bold')
 plt.show()

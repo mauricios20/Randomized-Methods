@@ -15,12 +15,12 @@ os.chdir(path)
 # $ Add more Stats as needed $
 
 
-def calc_diff(dtfCG, dtfTG, x, n):
+def calc_diff_kurt(dtfCG, dtfTG, x, n):
     list = []
-    Td = round(dtfTG[x].std(), n)
-    Cd = round(dtfCG[x].std(), n)
-    T = round((Td - Cd), n)
-    list.extend((Td, Cd, T))
+    kurtT = round(dtfTG[x].kurtosis(), n)
+    kurtC = round(dtfCG[x].kurtosis(), n)
+    T = round((kurtT - kurtC), n)
+    list.extend((kurtC, kurtT, T))
     return list
 
 # Permutations
@@ -35,7 +35,7 @@ def MC(Subjects, GlenC, nper, dtf):
         Treatment = Subjects[GlenC:]
         dtfCG = dtf.loc[dtf['Subject'].isin(control)]
         dtfTG = dtf.loc[dtf['Subject'].isin(Treatment)]
-        res = calc_diff(dtfCG, dtfTG, 'Belief', 3)
+        res = calc_diff_kurt(dtfCG, dtfTG, 'Belief', 3)
         dt = pd.DataFrame(data=[res])
         permu = permu.append(dt, ignore_index=True)
 
@@ -97,6 +97,33 @@ def MCfig(figu, dtf, dtf2, dtf3, dtf4, dtf5, x, bw):
     # 10000 permutatios
     sns.kdeplot(data=dtf5, x=dtf5[x], bw_adjust=bw, ax=figu.axes[0],
                 legend=True).legend(labels=['1,000', '2,500', '5,000', '7,500', '10,000'])
+
+
+def remove_outliers(data, x):
+    # Define Quartiles
+    Q1 = data[x].quantile(0.25)
+    Q3 = data[x].quantile(0.75)
+    IQR = Q3 - Q1
+
+    # Old Shape
+    print("Old Shape", data.shape)
+    upper = Q3 + 1.5 * IQR
+    lower = Q1 - 1.5 * IQR
+    print("Upper Bound:", upper)
+    OutlierUp = data.index[data[x] >= upper].tolist()
+    print(OutlierUp)
+
+    print("Lower Bound:", lower)
+    OutlierLow = data.index[data[x] <= lower].tolist()
+    print(OutlierLow)
+
+    # Removing Outliers
+    dtf = data.drop(OutlierUp, axis=0)
+    dtfNO = dtf.drop(OutlierLow, axis=0)
+    print("New Shape", dtfNO.shape)
+    return dtfNO
+
+
 #############################################################################
 # # ################ $$$ Monte Carlo $$$ ######################
 # Load the Data
@@ -112,12 +139,15 @@ dtf20, dtf20ST, dtf20LT = split('20PerSubjectData.csv',
 # #  ################ $$ During Crash vs. No Crash $$ ####################
 
 dtf40DC = dtf40[dtf40['Year'] <= 20]
-res0 = calc_diff(dtf20, dtf40DC, 'Belief', 3)
-dtfall = dtf20.append(dtf40DC, sort=False)
+dtf_DC = remove_outliers(dtf40DC, 'Belief')
+dtf_NC = remove_outliers(dtf20, 'Belief')
+
+res0 = calc_diff_kurt(dtf_NC, dtf_DC, 'Belief', 3)
+dtfall = dtf_NC.append(dtf_DC, sort=False)
 Subjects = dtfall.Subject.unique()
-GlenC = len(dtf20.Subject.unique())
+GlenC = len(dtf_NC.Subject.unique())
 print(res0)
-# print(dtfall.tail(25))
+
 
 # Run Multiple Permutations
 random.seed(180)
@@ -141,7 +171,8 @@ MCfig(fig, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
 fig.axes[0].set_xlabel('Kurtosis Difference')
 fig.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
 fig.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
-fig.axes[0].text(5, 0.120, str(obs), rotation=90, verticalalignment='center')
-fig.axes[0].text(-5.1, 0.120, str(-obs), rotation=90,
-                 verticalalignment='center')
+fig.axes[0].text(.3, 0.3, str(obs), rotation=90,
+                 verticalalignment='center', fontweight='bold')
+fig.axes[0].text(-.38, 0.3, str(-obs), rotation=90,
+                 verticalalignment='center', fontweight='bold')
 plt.show()
