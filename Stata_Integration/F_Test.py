@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import scipy
 import statistics
+from scipy import stats
 
 
 path = '/Users/mau/Dropbox/Mac/Documents/Dissertation/Safford2018/Data'
@@ -23,7 +24,7 @@ def split(fname, col, tname, CG, TG):
     return dtf, dtfCG, dtfTG,
 
 
-def f_test(x, y, a):
+def f_test(x, y, a, name):
     x = np.array(x)
     y = np.array(y)
     varx = statistics.variance(x)
@@ -36,6 +37,8 @@ def f_test(x, y, a):
         print("Var(x)={} > Var(y)={}, thus x is the nominator".format(
             round(varx, 3), round(vary, 3)))
         print("dfn={}, dfd={}".format(dfn, dfd))
+        s2max = varx
+        s2min = vary
     else:
         f = vary / varx
         dfn = y.size - 1
@@ -43,18 +46,29 @@ def f_test(x, y, a):
         print("Var(x)={} < Var(y)={}, thus y is the nominator".format(
             round(varx, 3), round(vary, 3)))
         print("dfn={}, dfd={}".format(dfn, dfd))
-
-    q = 1 - (a / 2)
-    Fc = scipy.stats.f.ppf(q, dfn, dfd)  # Critical Value
+        s2max = vary
+        s2min = varx
+    b = a / 2
+    q = 1 - b
+    Fcr = scipy.stats.f.ppf(q, dfn, dfd)  # Critical Value Right Tail
+    Fcl = scipy.stats.f.ppf(b, dfn, dfd)  # Left Tail
     p = 1 - scipy.stats.f.cdf(f, dfn, dfd)  # find p-value of F test statistic
 
-    if f < Fc:
-        print("f {} < Fc {}: Reject Null Hypothesis, Var(x) neq Var(Y)".format(
-            round(f, 3), round(Fc, 3)))
+    if f > Fcr or f < Fcl:
+        print("f {} > Fcr {} or f {} < Fcl {}: Reject Null Hypothesis, Var(x) neq Var(Y)".format(
+            round(f, 3), round(Fcr, 3), round(f, 3), round(Fcl, 3)))
+        dt = pd.DataFrame(data={'Name': name, 's2max': round(s2max, 3), 's2min': round(s2min, 3),
+                                'dfn': dfn, 'dfd': dfd, 'F': round(f, 3),
+                                '$F_{1-a/2}$': round(Fcr, 3), '$F_{a/2}$': round(Fcl, 3),
+                                'H_{o}': 'Reject'}, index=[0])
     else:
-        print("f {} > Fc {}: Fail to Reject Null Hypothesis, Var(x) = Var(y)".format(
-            round(f, 3), round(Fc, 3)))
-    return f, Fc, p
+        print("f {} < Fcr {} or f {} > Fcl {}: Fail to Reject Null Hypothesis, Var(x) = Var(y)".format(
+            round(f, 3), round(Fcr, 3), round(f, 3), round(Fcl, 3)))
+        dt = pd.DataFrame(data={'Name': name, 's2max': round(s2max, 3), 's2min': round(s2min, 3),
+                                'dfn': dfn, 'dfd': dfd, 'F': round(f, 3),
+                                '$F_{1-a/2}$': round(Fcr, 3), '$F_{a/2}$': round(Fcl, 3),
+                                'H_{o}': 'Fail to Reject'}, index=[0])
+    return dt
 
 
 # #  ################ $$ During Crash / Post Crash/ No Crash $$ ###############
@@ -70,11 +84,16 @@ dtf40PC = dtf40[dtf40['Year'] >= 21]
 
 frames = [dtf40DC, dtf40PC, dtf20]
 
-
+q = 0.05 / 2
+Fc = scipy.stats.f.ppf(q, 239, 239)
+Fc
 # ~~~~~~~~~~~~ Homogeneity of Variance ~~~~~~~~~~~~
 
-f, Fc, p = f_test(dtf20['Belief'], dtf40PC['Belief'], 0.05)
+dtPC_NC = f_test(dtf20['Belief'], dtf40PC['Belief'], 0.05, 'PCvsNC')
 
-f, Fc, p = f_test(dtf40DC['Belief'], dtf40PC['Belief'], 0.05)
+dtDC_PC = f_test(dtf40DC['Belief'], dtf40PC['Belief'], 0.05, 'DCvsPC')
 
-f, Fc, p = f_test(dtf40DC['Belief'], dtf20['Belief'], 0.05)
+dtDC_NC = f_test(dtf40DC['Belief'], dtf20['Belief'], 0.05, 'DCvsNC')
+
+final_dtf = pd.concat([dtDC_NC, dtDC_PC, dtPC_NC])
+print(final_dtf.to_latex(index=False))

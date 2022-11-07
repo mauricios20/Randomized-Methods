@@ -47,17 +47,17 @@ def MC(Subjects, GlenC, nper, dtf):
     # printing the intersection
     print('Number of observations that are >= than the observed kurtosis in ' +
           str(nper) + ' permutations is:' + str(count))
-    p_value = count / nper
-    corrected = (count + 1) / (nper + 1)
+    p_value = count / len(permu[2])
+    corrected = (count + 1) / (len(permu[2]) + 1)
     print('P(|Observed Diff|>={0:}) = {1:.2f}'.format(obs, p_value))
 
     a = 0.05
     if p_value < a:
         dt = pd.DataFrame(data={'k': nper, 'r': count, 'p_values': round(p_value, 3), 'Correction': round(
-            corrected, 3), 'Hypothesis': 'Reject Ho'}, index=[0])
+            corrected, 3), 'Hypothesis': 'Reject'}, index=[0])
     else:
         dt = pd.DataFrame(data={'k': nper, 'r': count, 'p_values': round(p_value, 3), 'Correction': round(
-            corrected, 3), 'Hypothesis': 'Fail to eject Ho'}, index=[0])
+            corrected, 3), 'Hypothesis': 'Fail to Reject'}, index=[0])
 
     return permu, dt
 # Split Data Frame
@@ -96,7 +96,8 @@ def MCfig(figu, dtf, dtf2, dtf3, dtf4, dtf5, x, bw):
 
     # 10000 permutatios
     sns.kdeplot(data=dtf5, x=dtf5[x], bw_adjust=bw, ax=figu.axes[0],
-                legend=True).legend(labels=['1,000', '2,500', '5,000', '7,500', '10,000'])
+                legend=True).legend(labels=['1,000', '2,500',
+                                            '5,000', '7,500', '10,000'])
 
 
 def remove_outliers(data, x):
@@ -122,8 +123,6 @@ def remove_outliers(data, x):
     dtfNO = dtf.drop(OutlierLow, axis=0)
     print("New Shape", dtfNO.shape)
     return dtfNO
-
-
 #############################################################################
 # # ################ $$$ Monte Carlo $$$ ######################
 # Load the Data
@@ -132,23 +131,21 @@ def remove_outliers(data, x):
 dtf40, dtf40ST, dtf40LT = split('40PerSubjectData.csv',
                                 'Belief', 'Treatment (D)', 0, 1)
 
-dtf20, dtf20ST, dtf20LT = split('20PerSubjectData.csv',
-                                'Belief', 'Treatment (D)', 0, 1)
+# # ############### $$ Post Crash vs.During Crash $$ ####################
 
-
-# #  ################ $$ During Crash vs. No Crash $$ ####################
-
+dtf40PC = dtf40[dtf40['Year'] >= 21]
 dtf40DC = dtf40[dtf40['Year'] <= 20]
+dtf40DC['Subject'] = dtf40DC['Subject'].astype(str) + 'DC'
+dtf40PC['Subject'] = dtf40PC['Subject'].astype(str) + 'PC'
+
+dtf_PC = remove_outliers(dtf40PC, 'Belief')
 dtf_DC = remove_outliers(dtf40DC, 'Belief')
-dtf_NC = remove_outliers(dtf20, 'Belief')
 
-res0 = calc_diff_kurt(dtf_NC, dtf_DC, 'Belief', 3)
-dtfall = dtf_NC.append(dtf_DC, sort=False)
+res0 = calc_diff_kurt(dtf_DC, dtf_PC, 'Belief', 3)
+dtfall = dtf_DC.append(dtf_PC, sort=False)
 Subjects = dtfall.Subject.unique()
-GlenC = len(dtf_NC.Subject.unique())
+GlenC = len(dtf_DC.Subject.unique())
 print(res0)
-
-
 # Run Multiple Permutations
 random.seed(180)
 obs = abs(res0[2])
@@ -164,15 +161,16 @@ print(permu3.head(3).to_latex(index=True))
 
 final_dtf = pd.concat([dt1, dt2, dt3, dt4, dt5])
 print(final_dtf.to_latex(index=False))
+# final_dtf.to_latex(index=True)
 
 # Plot kernel densities of each permuatation
-fig, axes = plt.subplots()
-MCfig(fig, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
-fig.axes[0].set_xlabel('Kurtosis Difference')
-fig.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
-fig.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
-fig.axes[0].text(.3, 0.3, str(obs), rotation=90,
-                 verticalalignment='center', fontweight='bold')
-fig.axes[0].text(-.38, 0.3, str(-obs), rotation=90,
-                 verticalalignment='center', fontweight='bold')
+fig1, axes = plt.subplots()
+MCfig(fig1, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
+fig1.axes[0].set_xlabel('')
+fig1.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
+fig1.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
+fig1.axes[0].text(.3, 0.4, str(obs), rotation=90,
+                  verticalalignment='center', fontweight='bold')
+fig1.axes[0].text(-.35, 0.4, str(-obs), rotation=90,
+                  verticalalignment='center', fontweight='bold')
 plt.show()

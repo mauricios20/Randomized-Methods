@@ -1,3 +1,4 @@
+
 import os
 import pandas as pd
 import random
@@ -67,8 +68,7 @@ def result(x, a):
         p_value = count / len(PermuFrameDict[i])
         corrected = (count + 1) / (len(PermuFrameDict[i]) + 1)
 
-        dt = pd.DataFrame(data={'Subject': i, 'n': len(
-            PermuFrameDict[i]), 'r': count, 'p_values': p_value, 'Correction': round(corrected, 2)})
+        dt = pd.DataFrame(data={'Subject': i, 'r': count, 'p_values': round(p_value, 3), 'Correction': round(corrected, 3)})
         final_results = final_results.append(dt, ignore_index=True)
 
     hypo = []
@@ -90,21 +90,16 @@ dtf40, dtf40ST, dtf40LT = split('40PerSubjectData.csv',
 
 
 # #  ################ $$ During Crash vs. Post Crash $$ ####################
-# Overall
-
-dtf40DC = dtf40[dtf40['Year'] <= 20]
-dtf40PC = dtf40[dtf40['Year'] >= 21]
-
-res = calc_diff(dtf40PC, dtf40DC, 'Belief', 3)
-res
-
-# #  ################ $$ During Crash vs. Post Crash $$ ####################
 # Per Subject
-Subjects = dtf40.Subject.unique()
-Years = dtf40.Year.unique()
+exclude = [41, 104, 42, 43, 45, 47, 55, 59, 106, 108, 110, 114, 118, 119]
+dtf = dtf40.loc[~dtf40.Subject.isin(exclude)]
+Subjects = dtf.Subject.unique()
+
+Years = dtf.Year.unique()
 Ylen = int(len(Years) / 2)
 DC = Years[:Ylen]
 PC = Years[Ylen:]
+
 
 # Total number of observations only for demostration
 # print(Ylen)
@@ -119,7 +114,7 @@ DataFrameDict = {elem: pd.DataFrame for elem in Subjects}
 
 Tobs = pd.DataFrame()
 for key in DataFrameDict.keys():
-    DataFrameDict[key] = dtf40[dtf40['Subject'] == key]
+    DataFrameDict[key] = dtf[dtf['Subject'] == key]
     dtfDC = DataFrameDict[key][DataFrameDict[key].Year <= 20]
     dtfPC = DataFrameDict[key][DataFrameDict[key].Year >= 21]
     res = calc_diff(dtfPC, dtfDC, 'Belief', 3)
@@ -128,7 +123,7 @@ for key in DataFrameDict.keys():
 
 Tobs.set_index(Subjects, inplace=True)
 
-print(Tobs.to_latex(index=True))
+print(Tobs.to_latex(index=False))
 
 # #### Monte Carlo ########
 
@@ -137,7 +132,7 @@ PermuFrameDict = {elem: pd.DataFrame for elem in Subjects}
 
 for key in PermuFrameDict.keys():
     PermuFrameDict[key] = pd.DataFrame()
-    for __ in range(5000):  # Doing 2 iterations.
+    for __ in range(10000):  # Doing 10000 iterations.
         # Groups and positions will be assigned in order, so shuffle beforehand.
         random.shuffle(Years)
         DC = Years[:Ylen]
@@ -152,16 +147,21 @@ for key in PermuFrameDict.keys():
 # Change Subject ID to see other results
 
 # Belief is 2, PA is 5, and EA is 8
-
 dt_mean = result(2, 0.05)
-dt_mean
-# print(dt_mean.to_latex(index=False))
+print(dt_mean.to_latex(index=False))
+
 dt_std = result(5, 0.05)
-dt_std
-# print(dt_std.to_latex(index=False))
+print(dt_std.to_latex(index=False))
+
 dt_skew = result(8, 0.05)
-dt_skew
-# print(dt_skew.to_latex(index=False))
+print(dt_skew.to_latex(index=False))
+
 dt_kurt = result(11, 0.05)
-dt_kurt
-# print(dt_kurt.to_latex(index=False))
+print(dt_kurt.to_latex(index=False))
+
+# Concat Results for table
+mean_std = pd.merge(dt_mean, dt_std, on ='Subject')
+print(mean_std.to_latex(index=False))
+
+skew_kurt = pd.merge(dt_skew, dt_kurt, on ='Subject')
+print(skew_kurt.to_latex(index=False))

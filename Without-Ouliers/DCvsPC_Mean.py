@@ -131,19 +131,21 @@ def remove_outliers(data, x):
 dtf40, dtf40ST, dtf40LT = split('40PerSubjectData.csv',
                                 'Belief', 'Treatment (D)', 0, 1)
 
-dtf20, dtf20ST, dtf20LT = split('20PerSubjectData.csv',
-                                'Belief', 'Treatment (D)', 0, 1)
 
-# # ############### $$ Post Crash vs. No Crash $$ ####################
+# # ############### $$ Post Crash vs. During Crash $$ ####################
 
 dtf40PC = dtf40[dtf40['Year'] >= 21]
-dtf_PC = remove_outliers(dtf40PC, 'Belief')
-dtf_NC = remove_outliers(dtf20, 'Belief')
+dtf40DC = dtf40[dtf40['Year'] <= 20]
+dtf40DC['Subject'] = dtf40DC['Subject'].astype(str) + 'DC'
+dtf40PC['Subject'] = dtf40PC['Subject'].astype(str) + 'PC'
 
-res0 = calc_diff(dtf_NC, dtf_PC, 'Belief', 3)
-dtfall = dtf_NC.append(dtf_PC, sort=False)
+dtf_PC = remove_outliers(dtf40PC, 'Belief')
+dtf_DC = remove_outliers(dtf40DC, 'Belief')
+
+res0 = calc_diff(dtf_DC, dtf_PC, 'Belief', 3)
+dtfall = dtf_DC.append(dtf_PC, sort=False)
 Subjects = dtfall.Subject.unique()
-GlenC = len(dtf_NC.Subject.unique())
+GlenC = len(dtf_DC.Subject.unique())
 print(res0)
 
 # Run Multiple Permutations
@@ -165,11 +167,11 @@ print(final_dtf.to_latex(index=False))
 # Plot kernel densities of each permuatation
 fig1, axes = plt.subplots()
 MCfig(fig1, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
-fig1.axes[0].set_xlabel('Mean Difference')
+fig1.axes[0].set_xlabel('')
 fig1.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
 fig1.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
-fig1.axes[0].text(.006, 15, str(obs), rotation=90,
+fig1.axes[0].text(.012, 8, str(obs), rotation=90,
                   verticalalignment='center', fontweight='bold')
-fig1.axes[0].text(-.007, 15, str(-obs), rotation=90,
+fig1.axes[0].text(-.014, 8, str(-obs), rotation=90,
                   verticalalignment='center', fontweight='bold')
 plt.show()

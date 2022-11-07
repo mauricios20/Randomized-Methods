@@ -17,10 +17,10 @@ os.chdir(path)
 
 def calc_diff(dtfCG, dtfTG, x, n):
     list = []
-    Td = round(dtfTG[x].mean(), n)
-    Cd = round(dtfCG[x].mean(), n)
+    Td = round(dtfTG[x].std(), n)
+    Cd = round(dtfCG[x].std(), n)
     T = round((Td - Cd), n)
-    list.extend((Cd, Td, T))
+    list.extend((Td, Cd, T))
     return list
 
 # Permutations
@@ -96,7 +96,33 @@ def MCfig(figu, dtf, dtf2, dtf3, dtf4, dtf5, x, bw):
 
     # 10000 permutatios
     sns.kdeplot(data=dtf5, x=dtf5[x], bw_adjust=bw, ax=figu.axes[0],
-                legend=True).legend(labels=['1,000', '2,500', '5,000', '7,500', '10,000'])
+                legend=True).legend(labels=['1,000', '2,500',
+                                            '5,000', '7,500', '10,000'])
+
+
+def remove_outliers(data, x):
+    # Define Quartiles
+    Q1 = data[x].quantile(0.25)
+    Q3 = data[x].quantile(0.75)
+    IQR = Q3 - Q1
+
+    # Old Shape
+    print("Old Shape", data.shape)
+    upper = Q3 + 1.5 * IQR
+    lower = Q1 - 1.5 * IQR
+    print("Upper Bound:", upper)
+    OutlierUp = data.index[data[x] >= upper].tolist()
+    print(OutlierUp)
+
+    print("Lower Bound:", lower)
+    OutlierLow = data.index[data[x] <= lower].tolist()
+    print(OutlierLow)
+
+    # Removing Outliers
+    dtf = data.drop(OutlierUp, axis=0)
+    dtfNO = dtf.drop(OutlierLow, axis=0)
+    print("New Shape", dtfNO.shape)
+    return dtfNO
 #############################################################################
 # # ################ $$$ Monte Carlo $$$ ######################
 # Load the Data
@@ -106,20 +132,21 @@ dtf40, dtf40ST, dtf40LT = split('40PerSubjectData.csv',
                                 'Belief', 'Treatment (D)', 0, 1)
 
 
-# #  ################ $$ During Crash vs. No Crash $$ ####################
+# # ############### $$ Post Crash vs. During Crash $$ ####################
 
-dtf40DC = dtf40[dtf40['Year'] <= 20]
 dtf40PC = dtf40[dtf40['Year'] >= 21]
+dtf40DC = dtf40[dtf40['Year'] <= 20]
 dtf40DC['Subject'] = dtf40DC['Subject'].astype(str) + 'DC'
 dtf40PC['Subject'] = dtf40PC['Subject'].astype(str) + 'PC'
 
-res0 = calc_diff(dtf40PC, dtf40DC, 'Belief', 3)
-print(res0)
-dtfall = dtf40PC.append(dtf40DC, sort=False)
-Subjects = dtfall.Subject.unique()
-GlenC = len(dtf40PC.Subject.unique())
+dtf_PC = remove_outliers(dtf40PC, 'Belief')
+dtf_DC = remove_outliers(dtf40DC, 'Belief')
 
-# print(dtfall.tail(25))
+res0 = calc_diff(dtf_DC, dtf_PC, 'Belief', 3)
+dtfall = dtf_DC.append(dtf_PC, sort=False)
+Subjects = dtfall.Subject.unique()
+GlenC = len(dtf_DC.Subject.unique())
+print(res0)
 
 # Run Multiple Permutations
 random.seed(180)
@@ -131,19 +158,20 @@ permu4, dt4 = MC(Subjects, GlenC, 7500, dtfall)
 permu5, dt5 = MC(Subjects, GlenC, 10000, dtfall)
 
 # print(permu1.head(3).to_latex(index=True))
-print(permu3.head(3).to_latex(index=True))
-# print(permu5.head(3).to_latex(index=True))
+# print(permu3.head(3).to_latex(index=True))
+print(permu5.head(3).to_latex(index=True))
 
 final_dtf = pd.concat([dt1, dt2, dt3, dt4, dt5])
 print(final_dtf.to_latex(index=False))
 
 # Plot kernel densities of each permuatation
-fig, axes = plt.subplots()
-MCfig(fig, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
-fig.axes[0].set_xlabel('Kurtosis Difference')
-fig.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
-fig.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
-fig.axes[0].text(5, 0.120, str(obs), rotation=90, verticalalignment='center')
-fig.axes[0].text(-5.1, 0.120, str(-obs), rotation=90,
-                 verticalalignment='center')
+fig1, axes = plt.subplots()
+MCfig(fig1, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
+fig1.axes[0].set_xlabel('')
+fig1.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
+fig1.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
+fig1.axes[0].text(0.005, 20, str(obs), rotation=90,
+                  verticalalignment='center', fontweight='bold')
+fig1.axes[0].text(-0.007, 20, str(-obs), rotation=90,
+                  verticalalignment='center', fontweight='bold')
 plt.show()

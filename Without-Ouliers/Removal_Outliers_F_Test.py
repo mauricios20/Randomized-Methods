@@ -34,7 +34,7 @@ def calc_sum_stats(boot_df):
     return sum_stats.T
 
 
-def remove_outliers(data, x):
+def remove_outliers(data, x, name):
     # Define Quartiles
     Q1 = data[x].quantile(0.25)
     Q3 = data[x].quantile(0.75)
@@ -46,20 +46,27 @@ def remove_outliers(data, x):
     lower = Q1 - 1.5 * IQR
     print("Upper Bound:", upper)
     OutlierUp = data.index[data[x] >= upper].tolist()
-    print(OutlierUp)
+    obsup = len(OutlierUp)
 
     print("Lower Bound:", lower)
     OutlierLow = data.index[data[x] <= lower].tolist()
-    print(OutlierLow)
+    obslow = len(OutlierLow)
 
+    totalout = obsup+obslow
     # Removing Outliers
     dtf = data.drop(OutlierUp, axis=0)
     dtfNO = dtf.drop(OutlierLow, axis=0)
     print("New Shape", dtfNO.shape)
-    return dtfNO
+
+    dt = pd.DataFrame(data={'Name': name, 'Q1': round(Q1, 2), 'Q3': round(Q3, 3),
+                            'IQR': IQR, 'Upper Bound': round(upper, 3),
+                            'Lower Bound': round(lower, 3),
+                            'obs>Upper': obsup, 'obs<Lower': obslow,
+                            'Total Outliers': totalout}, index=[0])
+    return dtfNO, dt
 
 
-def f_test(x, y, a):
+def f_test(x, y, a, name):
     x = np.array(x)
     y = np.array(y)
     varx = statistics.variance(x)
@@ -72,6 +79,8 @@ def f_test(x, y, a):
         print("Var(x)={} > Var(y)={}, thus x is the nominator".format(
             round(varx, 3), round(vary, 3)))
         print("dfn={}, dfd={}".format(dfn, dfd))
+        s2max = varx
+        s2min = vary
     else:
         f = vary / varx
         dfn = y.size - 1
@@ -79,18 +88,29 @@ def f_test(x, y, a):
         print("Var(x)={} < Var(y)={}, thus y is the nominator".format(
             round(varx, 3), round(vary, 3)))
         print("dfn={}, dfd={}".format(dfn, dfd))
-
-    q = 1 - (a / 2)
-    Fc = scipy.stats.f.ppf(q, dfn, dfd)  # Critical Value
+        s2max = vary
+        s2min = varx
+    b = a / 2
+    q = 1 - b
+    Fcr = scipy.stats.f.ppf(q, dfn, dfd)  # Critical Value Right Tail
+    Fcl = scipy.stats.f.ppf(b, dfn, dfd)  # Critical Value Left Tail
     p = 1 - scipy.stats.f.cdf(f, dfn, dfd)  # find p-value of F test statistic
 
-    if f < Fc:
-        print("f {} < Fc {}: Reject Null Hypothesis, Var(x) neq Var(Y)".format(
-            round(f, 3), round(Fc, 3)))
+    if f > Fcr or f < Fcl:
+        print("f {} > Fcr {} or f {} < Fcl {}: Reject Null Hypothesis, Var(x) neq Var(Y)".format(
+            round(f, 3), round(Fcr, 3), round(f, 3), round(Fcl, 3)))
+        dt = pd.DataFrame(data={'Name': name, 's2max': round(s2max, 3), 's2min': round(s2min, 3),
+                                'dfn': dfn, 'dfd': dfd, 'F': round(f, 3),
+                                '$F_{1-a/2}$': round(Fcr, 3), '$F_{a/2}$': round(Fcl, 3),
+                                'H_{o}': 'Reject'}, index=[0])
     else:
-        print("f {} > Fc {}: Fail to Reject Null Hypothesis, Var(x) = Var(y)".format(
-            round(f, 3), round(Fc, 3)))
-    return f, Fc, p
+        print("f {} < Fcr {} or f {} > Fcl {}: Fail to Reject Null Hypothesis, Var(x) = Var(y)".format(
+            round(f, 3), round(Fcr, 3), round(f, 3), round(Fcl, 3)))
+        dt = pd.DataFrame(data={'Name': name, 's2max': round(s2max, 3), 's2min': round(s2min, 3),
+                                'dfn': dfn, 'dfd': dfd, 'F': round(f, 3),
+                                '$F_{1-a/2}$': round(Fcr, 3), '$F_{a/2}$': round(Fcl, 3),
+                                'H_{o}': 'Fail to Reject'}, index=[0])
+    return dt
 
 
 # #  ################ $$ During Crash / Post Crash/ No Crash $$ ###############
@@ -105,9 +125,12 @@ dtf40DC = dtf40[dtf40['Year'] <= 20]
 dtf40PC = dtf40[dtf40['Year'] >= 21]
 
 # ~~~~~~~~~~~~~ Remove Outliers ~~~~~~~~~~~~~~~~~~~
-dtf_DC = remove_outliers(dtf40DC, 'Belief')
-dtf_PC = remove_outliers(dtf40PC, 'Belief')
-dtf_NC = remove_outliers(dtf20, 'Belief')
+dtf_DC, dtnumDC = remove_outliers(dtf40DC, 'Belief', 'During Crash')
+dtf_PC, dtnumPC = remove_outliers(dtf40PC, 'Belief', 'Post Crash')
+dtf_NC, dtnumNC = remove_outliers(dtf20, 'Belief', 'No Crash')
+
+Outliers_dtf = pd.concat([dtnumDC, dtnumPC, dtnumNC])
+print(Outliers_dtf.to_latex(index=False))
 
 # ~~~~~~~~~~~~~ Recalculate Stats ~~~~~~~~~~~~~~~~~~~
 statsDC = calc_sum_stats(dtf_DC['Belief'])
@@ -131,8 +154,11 @@ C1stats = pd.concat([statsDC, stObDC, statsNC, stObNC, statsPC, stObNC], axis=1,
 print(C1stats.round(3).to_latex(index=True))
 
 # ~~~~~~~~~~~~ Homogeneity of Variance ~~~~~~~~~~~~
-f, Fc, p = f_test(dtf_DC['Belief'], dtf_NC['Belief'], 0.05)
+dtDC_NC = f_test(dtf_DC['Belief'], dtf_NC['Belief'], 0.05, 'DCvsNC')
 
-f, Fc, p = f_test(dtf_DC['Belief'], dtf_PC['Belief'], 0.05)
+dtDC_PC = f_test(dtf_DC['Belief'], dtf_PC['Belief'], 0.05, 'DCvsPC')
 
-f, Fc, p = f_test(dtf_PC['Belief'], dtf_NC['Belief'], 0.05)
+dtPC_NC = f_test(dtf_PC['Belief'], dtf_NC['Belief'], 0.05, 'PCvsNC')
+
+final_dtf = pd.concat([dtDC_NC, dtDC_PC, dtPC_NC])
+print(final_dtf.to_latex(index=False))
