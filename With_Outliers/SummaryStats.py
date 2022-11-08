@@ -61,7 +61,7 @@ dtf20, dtf20ST, dtf20LT, st20, st20CG, st20TG = split('20PerSubjectData.csv',
 dtf40, dtf40ST, dtf40LT, st40, st40CG, st40TG = split('40PerSubjectData.csv',
                                          'Belief', 'Treatment (D)', 0, 1)
 
-
+# 0 is for Short Term 1 Long Term
 
 #  ################ $$ Overall $$ ####################
 
@@ -72,7 +72,7 @@ print(C0stats.round(3).to_latex(index=True))
 #  ################ $$ Short vs. Long Term Description $$ ####################
 
 Cstats = pd.concat([st40CG, st40TG, st20CG, st20TG], axis=1,
-                keys=['Control', 'Treatment', 'Control', 'Treatment'])
+                keys=['ST Crash', 'LT Crash', 'ST NC', 'LT NC'])
 print(Cstats.round(3).to_latex(index=True))
 
 #  ################ $$ During Crash vs. No Crash $$ ####################

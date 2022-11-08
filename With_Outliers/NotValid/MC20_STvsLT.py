@@ -17,8 +17,8 @@ os.chdir(path)
 
 def calc_diff_kurt(dtfCG, dtfTG, x, n):
     list = []
-    kurtT = round(dtfTG[x].kurtosis(), n)
-    kurtC = round(dtfCG[x].kurtosis(), n)
+    kurtT = round(dtfTG[x].mean(), n)
+    kurtC = round(dtfCG[x].mean(), n)
     T = round((kurtT-kurtC), n)
     list.extend((kurtC, kurtT, T))
     return list
@@ -26,21 +26,16 @@ def calc_diff_kurt(dtfCG, dtfTG, x, n):
 # Permutations
 
 
-def MC(Subjects, Glen, nper, dtf):
-    groupings = []
+def MC(Subjects, GlenC, nper, dtf):
+    permu = pd.DataFrame()
     for __ in range(nper):  # Doing 5 iterations.
         # Groups and positions will be assigned in order, so shuffle beforehand.
         random.shuffle(Subjects)
-        groupings.append(tuple(zip(*[iter(Subjects)]*Glen)))  # Group into 4-tuples.
-
-    # For Randomization Purposes only Extract Belief Column
-    dtf = dtf[['Subject', 'Treatment (D)', 'Belief']]
-
-    permu = pd.DataFrame()
-    for groups in groupings:
-        dtfCG = dtf.loc[dtf['Subject'].isin(groups[0])]
-        dtfTG = dtf.loc[dtf['Subject'].isin(groups[1])]
-        res = calc_diff_kurt(dtfCG, dtfTG, 'Belief', 2)
+        control = Subjects[:GlenC]
+        Treatment = Subjects[GlenC:]
+        dtfCG = dtf.loc[dtf['Subject'].isin(control)]
+        dtfTG = dtf.loc[dtf['Subject'].isin(Treatment)]
+        res = calc_diff_kurt(dtfCG, dtfTG, 'Belief', 3)
         dt = pd.DataFrame(data=[res])
         permu = permu.append(dt, ignore_index=True)
 
@@ -52,19 +47,19 @@ def MC(Subjects, Glen, nper, dtf):
     # printing the intersection
     print('Number of observations that are >= than the observed kurtosis in ' +
           str(nper) + ' permutations is:' + str(count))
-    p_value = count/len(permu[2])
-    corrected = (count+1)/(len(permu[2])+1)
-    print(p_value)
-    print(round(corrected, 3))
+    p_value = count / len(permu[2])
+    corrected = (count + 1) / (len(permu[2]) + 1)
     print('P(|Observed Diff|>={0:}) = {1:.2f}'.format(obs, p_value))
 
     a = 0.05
     if p_value < a:
-        print('Reject the null hypothesis of no Treatment effect, thus treatment worked')
+        dt = pd.DataFrame(data={'k': nper, 'r': count, 'p_values': round(p_value, 3), 'Correction': round(
+            corrected, 3), 'Hypothesis': 'Reject'}, index=[0])
     else:
-        print('Fail to reject the null hypothesis, thus treatment did not work')
+        dt = pd.DataFrame(data={'k': nper, 'r': count, 'p_values': round(p_value, 3), 'Correction': round(
+            corrected, 3), 'Hypothesis': 'Fail to Reject'}, index=[0])
 
-    return permu
+    return permu, dt
 # Split Data Frame
 
 
@@ -120,11 +115,11 @@ Subjects = dtf20.Subject.unique()  # Subjects are identified by their id.
 Glen = len(dtf20ST.Subject.unique())  # Group Lenght of original Randomization
 
 # Run Multiple Permutations
-permu1 = MC(Subjects, Glen, 1000, dtf20)
-permu2 = MC(Subjects, Glen, 2500, dtf20)
-permu3 = MC(Subjects, Glen, 5000, dtf20)
-permu4 = MC(Subjects, Glen, 7500, dtf20)
-permu5 = MC(Subjects, Glen, 10000, dtf20)
+permu1, dt1 = MC(Subjects, Glen, 1000, dtf20)
+permu2, dt2 = MC(Subjects, Glen, 2500, dtf20)
+permu3, dt3 = MC(Subjects, Glen, 5000, dtf20)
+permu4, dt4 = MC(Subjects, Glen, 7500, dtf20)
+permu5, dt5 = MC(Subjects, Glen, 10000, dtf20)
 
 print(permu1.head(3).to_latex(index=True))
 print(permu3.head(3).to_latex(index=True))
@@ -135,8 +130,8 @@ MCfig(fig, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
 fig.axes[0].set_xlabel('Kurtosis Difference')
 fig.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
 fig.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
-fig.axes[0].text(2.8, 0.04, str(obs), rotation=90, verticalalignment='center')
-fig.axes[0].text(-3.5, 0.04, str(-obs), rotation=90, verticalalignment='center')
+fig.axes[0].text(.08, 0.04, str(obs), rotation=90, verticalalignment='center')
+fig.axes[0].text(-.08, 0.04, str(-obs), rotation=90, verticalalignment='center')
 plt.show()
 
 # ######################## # Sanity Check # ###################################

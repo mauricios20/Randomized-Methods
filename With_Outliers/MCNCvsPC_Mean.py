@@ -17,9 +17,9 @@ os.chdir(path)
 
 def calc_diff(dtfCG, dtfTG, x, n):
     list = []
-    Td = round(dtfTG[x].std(), n)
-    Cd = round(dtfCG[x].std(), n)
-    T = round((Td - Cd), n)
+    Td = round(dtfTG[x].mean(), n)
+    Cd = round(dtfCG[x].mean(), n)
+    T = round((Td-Cd), n)
     list.extend((Td, Cd, T))
     return list
 
@@ -54,10 +54,10 @@ def MC(Subjects, GlenC, nper, dtf):
     a = 0.05
     if p_value < a:
         dt = pd.DataFrame(data={'k': nper, 'r': count, 'p_values': round(p_value, 3), 'Correction': round(
-            corrected, 3), 'Hypothesis': 'Reject'}, index=[0])
+            corrected, 3), 'Ho': 'Reject Ho'}, index=[0])
     else:
         dt = pd.DataFrame(data={'k': nper, 'r': count, 'p_values': round(p_value, 3), 'Correction': round(
-            corrected, 3), 'Hypothesis': 'Fail to Reject'}, index=[0])
+            corrected, 3), 'Ho': 'Fail to Reject'}, index=[0])
 
     return permu, dt
 # Split Data Frame
@@ -130,8 +130,8 @@ permu4, dt4 = MC(Subjects, GlenC, 7500, dtfall2)
 permu5, dt5 = MC(Subjects, GlenC, 10000, dtfall2)
 
 # print(permu1.head(3).to_latex(index=True))
-# print(permu3.head(3).to_latex(index=True))
-print(permu5.head(3).to_latex(index=True))
+print(permu3.head(3).to_latex(index=True))
+# print(permu5.head(3).to_latex(index=True))
 
 final_dtf = pd.concat([dt1, dt2, dt3, dt4, dt5])
 print(final_dtf.to_latex(index=False))
@@ -142,7 +142,6 @@ MCfig(fig1, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
 fig1.axes[0].set_xlabel('')
 fig1.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
 fig1.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
-fig1.axes[0].text(0.011, 7.5, str(obs), rotation=90, verticalalignment='center', fontweight='bold')
-fig1.axes[0].text(-0.014, 7.5, str(-obs), rotation=90,
-                  verticalalignment='center', fontweight='bold')
+fig1.axes[0].text(0.006, 23, str(obs), fontweight='bold', fontsize='x-large')
+fig1.axes[0].text(-0.028, 23, str(-obs), fontweight='bold', fontsize='x-large')
 plt.show()

@@ -52,7 +52,7 @@ def remove_outliers(data, x, name):
     OutlierLow = data.index[data[x] <= lower].tolist()
     obslow = len(OutlierLow)
 
-    totalout = obsup+obslow
+    totalout = obsup + obslow
     # Removing Outliers
     dtf = data.drop(OutlierUp, axis=0)
     dtfNO = dtf.drop(OutlierLow, axis=0)
@@ -125,6 +125,7 @@ dtf40DC = dtf40[dtf40['Year'] <= 20]
 dtf40PC = dtf40[dtf40['Year'] >= 21]
 
 # ~~~~~~~~~~~~~ Remove Outliers ~~~~~~~~~~~~~~~~~~~
+# Overall
 dtf_DC, dtnumDC = remove_outliers(dtf40DC, 'Belief', 'During Crash')
 dtf_PC, dtnumPC = remove_outliers(dtf40PC, 'Belief', 'Post Crash')
 dtf_NC, dtnumNC = remove_outliers(dtf20, 'Belief', 'No Crash')
@@ -132,11 +133,26 @@ dtf_NC, dtnumNC = remove_outliers(dtf20, 'Belief', 'No Crash')
 Outliers_dtf = pd.concat([dtnumDC, dtnumPC, dtnumNC])
 print(Outliers_dtf.to_latex(index=False))
 
+# Description
+dtf_DC_ST, dtnumDC_ST = remove_outliers(dtf40ST, 'Belief', 'DC_ST')
+dtf_DC_LT, dtnumDC_LT = remove_outliers(dtf40LT, 'Belief', 'DC_LT')
+dtf_NC_ST, dtnumNC_ST = remove_outliers(dtf20ST, 'Belief', 'NC_ST')
+dtf_NC_LT, dtnumNC_LT = remove_outliers(dtf20LT, 'Belief', 'NC_LT')
+
+Outliers_dtf_D = pd.concat([dtnumDC_ST, dtnumDC_LT, dtnumNC_ST, dtnumNC_LT])
+print(Outliers_dtf_D.to_latex(index=False))
+
 # ~~~~~~~~~~~~~ Recalculate Stats ~~~~~~~~~~~~~~~~~~~
+# Overall
 statsDC = calc_sum_stats(dtf_DC['Belief'])
 statsPC = calc_sum_stats(dtf_PC['Belief'])
 statsNC = calc_sum_stats(dtf_NC['Belief'])
 
+# Description
+statsDC_ST = calc_sum_stats(dtf_DC_ST['Belief'])
+statsDC_LT = calc_sum_stats(dtf_DC_LT['Belief'])
+statsNC_ST = calc_sum_stats(dtf_NC_ST['Belief'])
+statsNC_LT = calc_sum_stats(dtf_NC_LT['Belief'])
 
 #  $$ Objective Return Distributions $$
 dfOb = pd.read_csv('ObjDistribution.csv', header=0)  # Overall
@@ -153,6 +169,10 @@ C1stats = pd.concat([statsDC, stObDC, statsNC, stObNC, statsPC, stObNC], axis=1,
                     keys=['DC', 'ObDC', 'NC', 'dfObNC', 'PC', 'dfObNC'])
 print(C1stats.round(3).to_latex(index=True))
 
+C2stats = pd.concat([statsDC_LT, statsDC_ST, statsNC_LT, statsNC_ST], axis=1,
+                    keys=['LT_DC', 'ST_DC', 'LT_NC', 'ST_NC'])
+print(C2stats.round(3).to_latex(index=True))
+
 # ~~~~~~~~~~~~ Homogeneity of Variance ~~~~~~~~~~~~
 dtDC_NC = f_test(dtf_DC['Belief'], dtf_NC['Belief'], 0.05, 'DCvsNC')
 
@@ -162,3 +182,11 @@ dtPC_NC = f_test(dtf_PC['Belief'], dtf_NC['Belief'], 0.05, 'PCvsNC')
 
 final_dtf = pd.concat([dtDC_NC, dtDC_PC, dtPC_NC])
 print(final_dtf.to_latex(index=False))
+
+# ~~~~~~~~~~~~ Homogeneity of Variance Description ~~~~~~~~~~~~
+dtfLTvsST_C = f_test(dtf_DC_ST['Belief'], dtf_DC_LT['Belief'], 0.05, 'STvsLT Crash')
+
+dtfLTvsST_NC = f_test(dtf_NC_ST['Belief'], dtf_NC_LT['Belief'], 0.05, 'STvsLT NC')
+
+final_dtf_Description = pd.concat([dtfLTvsST_C, dtfLTvsST_NC])
+print(final_dtf_Description.to_latex(index=False))

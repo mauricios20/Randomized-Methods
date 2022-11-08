@@ -170,8 +170,6 @@ MCfig(fig1, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
 fig1.axes[0].set_xlabel('')
 fig1.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
 fig1.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
-fig1.axes[0].text(.012, 8, str(obs), rotation=90,
-                  verticalalignment='center', fontweight='bold')
-fig1.axes[0].text(-.014, 8, str(-obs), rotation=90,
-                  verticalalignment='center', fontweight='bold')
+fig1.axes[0].text(.012, 40, str(obs), fontweight='bold', fontsize='x-large')
+fig1.axes[0].text(-.023, 40, str(-obs), fontweight='bold', fontsize='x-large')
 plt.show()

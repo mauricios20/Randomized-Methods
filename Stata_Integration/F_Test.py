@@ -84,9 +84,6 @@ dtf40PC = dtf40[dtf40['Year'] >= 21]
 
 frames = [dtf40DC, dtf40PC, dtf20]
 
-q = 0.05 / 2
-Fc = scipy.stats.f.ppf(q, 239, 239)
-Fc
 # ~~~~~~~~~~~~ Homogeneity of Variance ~~~~~~~~~~~~
 
 dtPC_NC = f_test(dtf20['Belief'], dtf40PC['Belief'], 0.05, 'PCvsNC')
@@ -97,3 +94,11 @@ dtDC_NC = f_test(dtf40DC['Belief'], dtf20['Belief'], 0.05, 'DCvsNC')
 
 final_dtf = pd.concat([dtDC_NC, dtDC_PC, dtPC_NC])
 print(final_dtf.to_latex(index=False))
+
+# ~~~~~~~~~~~~ Homogeneity of Variance Description ~~~~~~~~~~~~
+dtfLT_ST_C = f_test(dtf40ST['Belief'], dtf40LT['Belief'], 0.05, 'STvsLT Crash')
+
+dtfLT_ST_NC = f_test(dtf20ST['Belief'], dtf20LT['Belief'], 0.05, 'STvsLT NC')
+
+final_dtf_Description = pd.concat([dtfLT_ST_C, dtfLT_ST_NC])
+print(final_dtf_Description.to_latex(index=False))

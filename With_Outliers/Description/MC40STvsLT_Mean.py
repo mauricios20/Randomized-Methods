@@ -19,7 +19,7 @@ def calc_diff(dtfCG, dtfTG, x, n):
     list = []
     Td = round(dtfTG[x].mean(), n)
     Cd = round(dtfCG[x].mean(), n)
-    T = round((Td-Cd), n)
+    T = round((Td - Cd), n)
     list.extend((Td, Cd, T))
     return list
 
@@ -108,26 +108,21 @@ def MCfig(figu, dtf, dtf2, dtf3, dtf4, dtf5, x, bw):
 dtf40, dtf40ST, dtf40LT = split('40PerSubjectData.csv',
                                 'Belief', 'Treatment (D)', 0, 1)
 
-dtf20, dtf20ST, dtf20LT = split('20PerSubjectData.csv',
-                                'Belief', 'Treatment (D)', 0, 1)
+# # ############### $$ Short Term vs. Long Term $$ ####################
 
-# # ############### $$ Post Crash vs. No Crash $$ ####################
-
-dtf40PC = dtf40[dtf40['Year'] >= 21]
-res0 = calc_diff(dtf20, dtf40PC, 'Belief', 3)
-dtfall2 = dtf20.append(dtf40PC, sort=False)
-Subjects = dtfall2.Subject.unique()
-GlenC = len(dtf20.Subject.unique())
+res0 = calc_diff(dtf40ST, dtf40LT, 'Belief', 3)
+Subjects = dtf40.Subject.unique()
+GlenC = len(dtf40ST.Subject.unique())
 print(res0)
 
 # Run Multiple Permutations
 random.seed(180)
 obs = abs(res0[2])
-permu1, dt1 = MC(Subjects, GlenC, 1000, dtfall2)
-permu2, dt2 = MC(Subjects, GlenC, 2500, dtfall2)
-permu3, dt3 = MC(Subjects, GlenC, 5000, dtfall2)
-permu4, dt4 = MC(Subjects, GlenC, 7500, dtfall2)
-permu5, dt5 = MC(Subjects, GlenC, 10000, dtfall2)
+permu1, dt1 = MC(Subjects, GlenC, 1000, dtf40)
+permu2, dt2 = MC(Subjects, GlenC, 2500, dtf40)
+permu3, dt3 = MC(Subjects, GlenC, 5000, dtf40)
+permu4, dt4 = MC(Subjects, GlenC, 7500, dtf40)
+permu5, dt5 = MC(Subjects, GlenC, 10000, dtf40)
 
 # print(permu1.head(3).to_latex(index=True))
 print(permu3.head(3).to_latex(index=True))
@@ -142,7 +137,6 @@ MCfig(fig1, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
 fig1.axes[0].set_xlabel('')
 fig1.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
 fig1.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
-fig1.axes[0].text(0.006, 8, str(obs), rotation=90, verticalalignment='center', fontweight='bold')
-fig1.axes[0].text(-0.008, 8, str(-obs), rotation=90,
-                  verticalalignment='center', fontweight='bold')
+fig1.axes[0].text(0.011, 20, str(obs), fontweight='bold', fontsize='x-large')
+fig1.axes[0].text(-0.037, 20, str(-obs), fontweight='bold', fontsize='x-large')
 plt.show()

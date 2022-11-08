@@ -100,29 +100,6 @@ def MCfig(figu, dtf, dtf2, dtf3, dtf4, dtf5, x, bw):
                                             '5,000', '7,500', '10,000'])
 
 
-def remove_outliers(data, x):
-    # Define Quartiles
-    Q1 = data[x].quantile(0.25)
-    Q3 = data[x].quantile(0.75)
-    IQR = Q3 - Q1
-
-    # Old Shape
-    print("Old Shape", data.shape)
-    upper = Q3 + 1.5 * IQR
-    lower = Q1 - 1.5 * IQR
-    print("Upper Bound:", upper)
-    OutlierUp = data.index[data[x] >= upper].tolist()
-    print(OutlierUp)
-
-    print("Lower Bound:", lower)
-    OutlierLow = data.index[data[x] <= lower].tolist()
-    print(OutlierLow)
-
-    # Removing Outliers
-    dtf = data.drop(OutlierUp, axis=0)
-    dtfNO = dtf.drop(OutlierLow, axis=0)
-    print("New Shape", dtfNO.shape)
-    return dtfNO
 #############################################################################
 # # ################ $$$ Monte Carlo $$$ ######################
 # Load the Data
@@ -131,29 +108,26 @@ def remove_outliers(data, x):
 dtf40, dtf40ST, dtf40LT = split('40PerSubjectData.csv',
                                 'Belief', 'Treatment (D)', 0, 1)
 
-# # ############### $$ Post Crash vs.During Crash $$ ####################
+dtf20, dtf20ST, dtf20LT = split('20PerSubjectData.csv',
+                                'Belief', 'Treatment (D)', 0, 1)
+
+# # ############### $$ Post Crash vs. No Crash $$ ####################
 
 dtf40PC = dtf40[dtf40['Year'] >= 21]
-dtf40DC = dtf40[dtf40['Year'] <= 20]
-dtf40DC['Subject'] = dtf40DC['Subject'].astype(str) + 'DC'
-dtf40PC['Subject'] = dtf40PC['Subject'].astype(str) + 'PC'
-
-dtf_PC = remove_outliers(dtf40PC, 'Belief')
-dtf_DC = remove_outliers(dtf40DC, 'Belief')
-
-res0 = calc_diff_kurt(dtf_DC, dtf_PC, 'Belief', 3)
-dtfall = dtf_DC.append(dtf_PC, sort=False)
-Subjects = dtfall.Subject.unique()
-GlenC = len(dtf_DC.Subject.unique())
+res0 = calc_diff_kurt(dtf20, dtf40PC, 'Belief', 3)
+dtfall2 = dtf20.append(dtf40PC, sort=False)
+Subjects = dtfall2.Subject.unique()
+GlenC = len(dtf20.Subject.unique())
 print(res0)
+
 # Run Multiple Permutations
 random.seed(180)
 obs = abs(res0[2])
-permu1, dt1 = MC(Subjects, GlenC, 1000, dtfall)
-permu2, dt2 = MC(Subjects, GlenC, 2500, dtfall)
-permu3, dt3 = MC(Subjects, GlenC, 5000, dtfall)
-permu4, dt4 = MC(Subjects, GlenC, 7500, dtfall)
-permu5, dt5 = MC(Subjects, GlenC, 10000, dtfall)
+permu1, dt1 = MC(Subjects, GlenC, 1000, dtfall2)
+permu2, dt2 = MC(Subjects, GlenC, 2500, dtfall2)
+permu3, dt3 = MC(Subjects, GlenC, 5000, dtfall2)
+permu4, dt4 = MC(Subjects, GlenC, 7500, dtfall2)
+permu5, dt5 = MC(Subjects, GlenC, 10000, dtfall2)
 
 # print(permu1.head(3).to_latex(index=True))
 print(permu3.head(3).to_latex(index=True))
@@ -169,6 +143,6 @@ MCfig(fig1, permu1, permu2, permu3, permu4, permu5, 2, 0.5)
 fig1.axes[0].set_xlabel('')
 fig1.axes[0].axvline(x=obs, color='black', linestyle="--", linewidth=1)
 fig1.axes[0].axvline(x=-obs, color='black', linestyle="--", linewidth=1)
-fig1.axes[0].text(.3, 0.85, str(obs), fontweight='bold', fontsize='x-large')
-fig1.axes[0].text(-1, 0.85, str(-obs), fontweight='bold', fontsize='x-large')
+fig1.axes[0].text(4, 0.09, str(obs), fontweight='bold', fontsize='x-large')
+fig1.axes[0].text(-7.9, 0.09, str(-obs), fontweight='bold', fontsize='x-large')
 plt.show()
