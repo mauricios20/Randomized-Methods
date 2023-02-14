@@ -10,7 +10,7 @@ path = '/Users/mau/Dropbox/Mac/Documents/Dissertation/Safford2018/Data'
 os.chdir(path)
 
 
-def split(fname, col, tname, CG, TG):
+def split(fname, col, tname, CG, TG, sex):
     # Get Data Frame
     dtf = pd.read_csv(fname, header=0,
                       dtype={'Treatment (D)': int, 'Subject': int, 'Year': int})
@@ -21,7 +21,11 @@ def split(fname, col, tname, CG, TG):
 
     dtfTG = dtf[dtf[tname] == TG]
 
-    return dtf, dtfCG, dtfTG,
+    dtfMale = dtf[dtf[sex] == 'Male']
+
+    dtfFemale = dtf[dtf[sex] == 'Female']
+
+    return dtf, dtfCG, dtfTG, dtfMale, dtfFemale
 
 
 def f_test(x, y, a, name):
@@ -73,18 +77,25 @@ def f_test(x, y, a, name):
 
 # #  ################ $$ During Crash / Post Crash/ No Crash $$ ###############
 # Extract Data
-dtf40, dtf40ST, dtf40LT = split('40PerSubjectData.csv',
-                                'Belief', 'Treatment (D)', 0, 1)
+dtf40, dtf40ST, dtf40LT, dtf40Male, dtf40Female = split('40PerSubjectData.csv',
+                                'Belief', 'Treatment (D)', 0, 1, 'Sex')
 
-dtf20, dtf20ST, dtf20LT = split('20PerSubjectData.csv',
-                                'Belief', 'Treatment (D)', 0, 1)
+dtf20, dtf20ST, dtf20LT, dtf20Male, dtf20Female = split('20PerSubjectData.csv',
+                                'Belief', 'Treatment (D)', 0, 1, 'Sex')
+
+dtf40.columns
+dtf40FemaleDC = dtf40Female[dtf40Female['Condition'] == 'DC']
+dtf40FemalePC = dtf40Female[dtf40Female['Condition'] == 'PC']
+
+dtf40MaleDC = dtf40Male[dtf40Male['Condition'] == 'DC']
+dtf40MalePC = dtf40Male[dtf40Male['Condition'] == 'PC']
 
 dtf40DC = dtf40[dtf40['Year'] <= 20]
 dtf40PC = dtf40[dtf40['Year'] >= 21]
 
 frames = [dtf40DC, dtf40PC, dtf20]
 
-# ~~~~~~~~~~~~ Homogeneity of Variance ~~~~~~~~~~~~
+# ~~~~~~~~~~~~ Homogeneity of Variance Crash Condition~~~~~~~~~~~~
 
 dtPC_NC = f_test(dtf20['Belief'], dtf40PC['Belief'], 0.05, 'PCvsNC')
 
@@ -102,3 +113,7 @@ dtfLT_ST_NC = f_test(dtf20ST['Belief'], dtf20LT['Belief'], 0.05, 'STvsLT NC')
 
 final_dtf_Description = pd.concat([dtfLT_ST_C, dtfLT_ST_NC])
 print(final_dtf_Description.to_latex(index=False))
+
+# ~~~~~~~~~~~~ Homogeneity of Variance Gender ~~~~~~~~~~~~
+dtff = f_test(dtf40FemaleDC['Belief'], dtf40FemalePC['Belief'], 0.05, 'DCvsPC')
+dtfM = f_test(dtf40MaleDC['Belief'], dtf40MalePC['Belief'], 0.05, 'DCvsPC')

@@ -9,7 +9,7 @@ path = '/Users/mau/Dropbox/Mac/Documents/Dissertation/Safford2018/Data'
 os.chdir(path)
 
 
-def split(fname, col, tname, CG, TG):
+def split(fname, col, tname, CG, TG, sex):
     # Get Data Frame
     dtf = pd.read_csv(fname, header=0,
                       dtype={'Treatment (D)': int, 'Subject': int, 'Year': int})
@@ -20,7 +20,11 @@ def split(fname, col, tname, CG, TG):
 
     dtfTG = dtf[dtf[tname] == TG]
 
-    return dtf, dtfCG, dtfTG,
+    dtfMale = dtf[dtf[sex] == 'Male']
+
+    dtfFemale = dtf[dtf[sex] == 'Female']
+
+    return dtf, dtfCG, dtfTG, dtfMale, dtfFemale
 
 
 def calc_sum_stats(boot_df):
@@ -115,14 +119,31 @@ def f_test(x, y, a, name):
 
 # #  ################ $$ During Crash / Post Crash/ No Crash $$ ###############
 # Extract Data
-dtf40, dtf40ST, dtf40LT = split('40PerSubjectData.csv',
-                                'Belief', 'Treatment (D)', 0, 1)
+dtf40, dtf40ST, dtf40LT, dtf40Male, dtf40Female = split('40PerSubjectData.csv',
+                                'Belief', 'Treatment (D)', 0, 1, 'Sex')
 
-dtf20, dtf20ST, dtf20LT = split('20PerSubjectData.csv',
-                                'Belief', 'Treatment (D)', 0, 1)
+dtf20, dtf20ST, dtf20LT, dtf20Male, dtf20Female = split('20PerSubjectData.csv',
+                                'Belief', 'Treatment (D)', 0, 1, 'Sex')
 
 dtf40DC = dtf40[dtf40['Year'] <= 20]
 dtf40PC = dtf40[dtf40['Year'] >= 21]
+
+dtf40FemaleDC = dtf40Female[dtf40Female['Condition'] == 'DC']
+dtf40FemalePC = dtf40Female[dtf40Female['Condition'] == 'PC']
+
+dtf40MaleDC = dtf40Male[dtf40Male['Condition'] == 'DC']
+dtf40MalePC = dtf40Male[dtf40Male['Condition'] == 'PC']
+
+statsDC_F = calc_sum_stats(dtf40FemaleDC['Belief'])
+statsDC_M = calc_sum_stats(dtf40MaleDC['Belief'])
+
+statsPC_F = calc_sum_stats(dtf40FemalePC['Belief'])
+statsPC_M = calc_sum_stats(dtf40MalePC['Belief'])
+
+
+dtf40MaleDC = dtf40Male[dtf40Male['Condition'] == 'DC']
+dtf40MalePC = dtf40Male[dtf40Male['Condition'] == 'PC']
+
 
 # ~~~~~~~~~~~~~ Remove Outliers ~~~~~~~~~~~~~~~~~~~
 # Overall
@@ -138,9 +159,22 @@ dtf_DC_ST, dtnumDC_ST = remove_outliers(dtf40ST, 'Belief', 'DC_ST')
 dtf_DC_LT, dtnumDC_LT = remove_outliers(dtf40LT, 'Belief', 'DC_LT')
 dtf_NC_ST, dtnumNC_ST = remove_outliers(dtf20ST, 'Belief', 'NC_ST')
 dtf_NC_LT, dtnumNC_LT = remove_outliers(dtf20LT, 'Belief', 'NC_LT')
-
 Outliers_dtf_D = pd.concat([dtnumDC_ST, dtnumDC_LT, dtnumNC_ST, dtnumNC_LT])
 print(Outliers_dtf_D.to_latex(index=False))
+
+#Gender Female
+dtf_DC_F, dtnumDC_F = remove_outliers(dtf40FemaleDC, 'Belief', 'During Crash')
+dtf_PC_F, dtnumPC_F = remove_outliers(dtf40FemalePC, 'Belief', 'Post Crash')
+dtf_NC_F, dtnumNC_F = remove_outliers(dtf20Female, 'Belief', 'No Crash')
+Outliers_Female_dtf = pd.concat([dtnumDC_F, dtnumPC_F, dtnumNC_F])
+print(Outliers_dtf.to_latex(index=False))
+
+#Gender Male
+dtf_DC_F, dtnumDC_F = remove_outliers(dtf40FemaleDC, 'Belief', 'During Crash')
+dtf_PC_F, dtnumPC_F = remove_outliers(dtf40FemalePC, 'Belief', 'Post Crash')
+dtf_NC_F, dtnumNC_F = remove_outliers(dtf20Female, 'Belief', 'No Crash')
+Outliers_Female_dtf = pd.concat([dtnumDC_F, dtnumPC_F, dtnumNC_F])
+print(Outliers_dtf.to_latex(index=False))
 
 # ~~~~~~~~~~~~~ Recalculate Stats ~~~~~~~~~~~~~~~~~~~
 # Overall
@@ -154,6 +188,15 @@ statsDC_LT = calc_sum_stats(dtf_DC_LT['Belief'])
 statsNC_ST = calc_sum_stats(dtf_NC_ST['Belief'])
 statsNC_LT = calc_sum_stats(dtf_NC_LT['Belief'])
 
+#Gender Female
+statsDC_F = calc_sum_stats(dtf_DC_F['Belief'])
+statsPC_F = calc_sum_stats(dtf_PC_F['Belief'])
+statsNC_F = calc_sum_stats(dtf_NC_F['Belief'])
+
+
+statsDC_F
+statsPC_F
+statsNC_F
 #  $$ Objective Return Distributions $$
 dfOb = pd.read_csv('ObjDistribution.csv', header=0)  # Overall
 stOb = calc_sum_stats(dfOb['Objective'])
@@ -190,3 +233,7 @@ dtfLTvsST_NC = f_test(dtf_NC_ST['Belief'], dtf_NC_LT['Belief'], 0.05, 'STvsLT NC
 
 final_dtf_Description = pd.concat([dtfLTvsST_C, dtfLTvsST_NC])
 print(final_dtf_Description.to_latex(index=False))
+
+# ~~~~~~~~~~~~ Homogeneity of Variance Gender ~~~~~~~~~~~~
+dtff = f_test(dtf_DC_F['Belief'], dtf_PC_F['Belief'], 0.05, 'DCvsPC')
+dtfM = f_test(dtf40MaleDC['Belief'], dtf40MalePC['Belief'], 0.05, 'DCvsPC')
